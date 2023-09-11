@@ -1,0 +1,30 @@
+basic:
+  max-gwei: 13
+  min-random-delay-between-actions: 10
+  max-random-delay-between-actions: 20
+  min-random-delay-between-swaps: 60
+  max-random-delay-between-swaps: 60
+  swap-slippage: 2
+api:
+  binance-api-key: ""
+  binance-secret-key: ""
+  starknet-rpc: ""
+deposit:
+  starkgate-bridge: False
+  bridge-amount-percentage:
+  binance-withdraw-on: False
+  balance-to-withdraw: 
+actions:
+  jediswap-swap: 0
+  jediswap-liq-add-remove: 0
+  avnufi-swap: 0
+  10kswap-swap: 0
+  starkverse-nft-mint: 0
+  starknetid-nft-mint: 0
+  jediswap-swap-percentage: 30
+  jediswap-liq-percentage: 65
+  avnufi-swap-percentage: 85
+  10kswap-swap-percentage: 80
+  dmail-min-messages-count: 0
+  dmail-max-messages-count: 0
+  swap-all-tokens-to-eth-at-the-end: True
