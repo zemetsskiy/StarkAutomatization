@@ -39,7 +39,16 @@ async def setup_acc(keys):
     try:
         TASKS = []
 
-        public_key, private_key, evm_private_key = keys.split(':')
+        public_key = ""
+        private_key = ""
+        evm_private_key = ""
+        split_keys = keys.split(':')
+
+        if len(split_keys) == 2:
+            public_key, private_key = split_keys
+        elif len(split_keys) == 3:
+            public_key, private_key, evm_private_key = split_keys
+
         address = int(public_key, 16)
 
         settings = get_settings()
@@ -48,8 +57,6 @@ async def setup_acc(keys):
         SWAP_SLIPPAGE = settings['basic']['swap-slippage']
         MIN_RANDOM_DELAY = settings['basic']['min-random-delay-between-actions']
         MAX_RANDOM_DELAY = settings['basic']['max-random-delay-between-actions']
-        #MIN_RANDOM_DELAY_BETWEEN_SWAPS = settings['basic']['min-random-delay-between-swaps']
-        #MAX_RANDOM_DELAY_BETWEEN_SWAPS = settings['basic']['max-random-delay-between-swaps']
 
         BINANCE_API_KEY = settings['api']['binance-api-key']
         BINANCE_SECRET_KEY = settings['api']['binance-secret-key']
@@ -75,7 +82,7 @@ async def setup_acc(keys):
         DMAIL_MIN_MESSAGES_COUNT = settings['actions']['dmail-min-messages-count']
         DMAIL_MAX_MESSAGES_COUNT = settings['actions']['dmail-max-messages-count']
 
-        SWAP_ALL_TO_ETH = settings['actions']['swap-all-tokens-to-eth-at-the-end']
+        #SWAP_ALL_TO_ETH = settings['actions']['swap-all-tokens-to-eth-at-the-end']
 
         client = Client(address=address, private_key=int(private_key, 16), address_to_log=public_key, starknet_rpc=STARKNET_RPC, MAX_GWEI=MAX_GWEI)
 
@@ -83,12 +90,6 @@ async def setup_acc(keys):
             JediSwap_client = JediSwap(client=client, JEDISWAP_SWAP_PERCENTAGE=JEDISWAP_SWAP_PERCENTAGE, JEDISWAP_LIQ_PERCENTAGE=JEDISWAP_LIQ_PERCENTAGE, SLIPPAGE=SWAP_SLIPPAGE)
             for _ in range(JEDISWAP_SWAP_COUNT):
                 TASKS.append(JediSwap_client.swap)
-
-        if isinstance(JEDISWAP_LP_COUNT, int) and JEDISWAP_LP_COUNT != 0:
-            JediSwap_client = JediSwap(client=client, JEDISWAP_SWAP_PERCENTAGE=JEDISWAP_SWAP_PERCENTAGE, JEDISWAP_LIQ_PERCENTAGE=JEDISWAP_LIQ_PERCENTAGE, SLIPPAGE=SWAP_SLIPPAGE)
-
-            for _ in range(JEDISWAP_LP_COUNT):
-                TASKS.append(JediSwap_client.add_liquidity)
 
         if isinstance(AVNUFI_SWAP_COUNT, int) and AVNUFI_SWAP_COUNT != 0:
             AvnuFi_client = AvnuFi(client=client, AVNUFI_SWAP_PERCENTAGE=AVNUFI_SWAP_PERCENTAGE, SLIPPAGE=SWAP_SLIPPAGE)
@@ -119,20 +120,19 @@ async def setup_acc(keys):
                 TASKS.append(Dmail_client.send_message)
 
         shuffle(TASKS)
-        tasks_quantity = len(TASKS)
+        # tasks_quantity = (len(TASKS)+JEDISWAP_LP_COUNT) if JEDISWAP_LP_COUNT else len(TASKS)
         formatted_key = f"{public_key[:5]}...{public_key[-5:]}"
-        logger.info(f"{formatted_key} - {tasks_quantity} tasks added")
-        logger.info(f"Binance withdraw: {'Yes' if BINANCE_WITHDRAW else 'No'}")
-        logger.info(f"Ethereum -> StarkNet bridge: {'Yes' if STARKGATE_BRIDGE else 'No'}")
-        logger.info(f"JediSwap swaps: {JEDISWAP_SWAP_COUNT}")
-        logger.info(f"JediSwap liquidity adding and removing: {JEDISWAP_LP_COUNT}")
-        logger.info(f"AvnuFi swaps: {AVNUFI_SWAP_COUNT}")
-        logger.info(f"10kswap swaps: {TENKSWAP_SWAP_COUNT}")
-        logger.info(f"Dmail messages: {dmail_quantity}")
-        logger.info(f"StarkVerse NFT mints: {STARKVERSE_NFT_MINT_COUNT}")
-        logger.info(f"StarkNetId NFT mints: {STARKNETID_NFT_MINT_COUNT}")
-        logger.info(f"Swap all tokens to ETH at the end: {'Yes' if SWAP_ALL_TO_ETH else 'No'}")
-
+        # logger.info(f"{formatted_key} - {tasks_quantity} {'task' if tasks_quantity == 1 else 'tasks'} added")
+        # logger.info(f"Binance withdraw: {'Yes' if BINANCE_WITHDRAW else 'No'}")
+        # logger.info(f"Ethereum -> StarkNet bridge: {'Yes' if STARKGATE_BRIDGE else 'No'}")
+        # logger.info(f"JediSwap swaps: {JEDISWAP_SWAP_COUNT}")
+        # logger.info(f"JediSwap liquidity adding and removing: {JEDISWAP_LP_COUNT}")
+        # logger.info(f"AvnuFi swaps: {AVNUFI_SWAP_COUNT}")
+        # logger.info(f"10kswap swaps: {TENKSWAP_SWAP_COUNT}")
+        # logger.info(f"Dmail messages: {dmail_quantity}")
+        # logger.info(f"StarkVerse NFT mints: {STARKVERSE_NFT_MINT_COUNT}")
+        # logger.info(f"StarkNetId NFT mints: {STARKNETID_NFT_MINT_COUNT}")
+        # logger.info(f"Swap all tokens to ETH at the end: {'Yes' if SWAP_ALL_TO_ETH else 'No'}")
 
         if BINANCE_WITHDRAW is True:
             delay = randint(15, 30)
@@ -153,42 +153,46 @@ async def setup_acc(keys):
                 return
 
         if STARKGATE_BRIDGE is True:
-            if BINANCE_WITHDRAW is not True:
-                delay = randint(15, 30)
-                logger.info(f"[{formatted_key}] Sleeping for {delay} s before bridging to StarkNet")
-                await sleep(delay)
-
-                BALANCE_ON_EVM = Bridger.get_balance(evm_private_key)
-                amount_to_bridge = (BRIDGE_AMOUNT_PERCENTAGE / 100) * BALANCE_ON_EVM
-                print(f"{amount_to_bridge}")
-
-                result = await Bridger.bridge_eth_stark(pk=evm_private_key, amount_to_bridge=amount_to_bridge, l2Recipient=address, MAX_GWEI=MAX_GWEI)
-                if result is True:
-                    delay = randint(60, 70)
-                    logger.info(f"[{formatted_key}] Sleeping for {delay} s after bridging to StarkNet")
+            if evm_private_key != "":
+                if BINANCE_WITHDRAW is not True:
+                    delay = randint(15, 30)
+                    logger.info(f"[{formatted_key}] Sleeping for {delay} s before bridging to StarkNet")
                     await sleep(delay)
+
+                    BALANCE_ON_EVM = Bridger.get_balance(evm_private_key)
+                    amount_to_bridge = (BRIDGE_AMOUNT_PERCENTAGE / 100) * BALANCE_ON_EVM
+                    print(f"{amount_to_bridge}")
+
+                    result = await Bridger.bridge_eth_stark(pk=evm_private_key, amount_to_bridge=amount_to_bridge,
+                                                            l2Recipient=address, MAX_GWEI=MAX_GWEI)
+                    if result is True:
+                        delay = randint(60, 70)
+                        logger.info(f"[{formatted_key}] Sleeping for {delay} s after bridging to StarkNet")
+                        await sleep(delay)
+                    else:
+                        logger.error(f"[{formatted_key}] Stopped working due to an error while bridging to StarkNet")
+                        with open('wallets-with-bridge-error.txt', 'a+') as f:
+                            f.writelines(f"[{formatted_key}] - {result}\n")
+                        return
                 else:
-                    logger.error(f"[{formatted_key}] Stopped working due to an error while bridging to StarkNet")
-                    with open('wallets-with-bridge-error.txt', 'a+') as f:
-                        f.writelines(f"[{formatted_key}] - {result}\n")
-                    return
+                    delay = randint(15, 30)
+                    logger.info(f"[{formatted_key}] Sleeping for {delay} s before bridging to StarkNet")
+                    await sleep(delay)
+
+                    amount_to_bridge = (BRIDGE_AMOUNT_PERCENTAGE / 100) * BALANCE_TO_WITHDRAW
+                    result = await Bridger.bridge_eth_stark(pk=evm_private_key, amount_to_bridge=amount_to_bridge,
+                                                            l2Recipient=address, MAX_GWEI=MAX_GWEI)
+                    if result is True:
+                        delay = randint(60, 70)
+                        logger.info(f"[{formatted_key}] Sleeping for {delay} s after bridging to StarkNet")
+                        await sleep(delay)
+                    else:
+                        logger.error(f"[{formatted_key}] Stopped working due to an error while bridging to StarkNet")
+                        with open('wallets-with-bridge-error.txt', 'a+') as f:
+                            f.writelines(f"[{formatted_key}] - {result}\n")
+                        return
             else:
-                delay = randint(15, 30)
-                logger.info(f"[{formatted_key}] Sleeping for {delay} s before bridging to StarkNet")
-                await sleep(delay)
-
-                amount_to_bridge = (BRIDGE_AMOUNT_PERCENTAGE / 100) * BALANCE_TO_WITHDRAW
-                result = await Bridger.bridge_eth_stark(pk=evm_private_key, amount_to_bridge=amount_to_bridge,
-                                                        l2Recipient=address, MAX_GWEI=MAX_GWEI)
-                if result is True:
-                    delay = randint(60, 70)
-                    logger.info(f"[{formatted_key}] Sleeping for {delay} s after bridging to StarkNet")
-                    await sleep(delay)
-                else:
-                    logger.error(f"[{formatted_key}] Stopped working due to an error while bridging to StarkNet")
-                    with open('wallets-with-bridge-error.txt', 'a+') as f:
-                        f.writelines(f"[{formatted_key}] - {result}\n")
-                    return
+                logger.error("You should put your evm_private_key as a 3rd param in keys.txt")
 
         start_delay = randint(30, 60)
         logger.info(f"[{formatted_key}] Sleeping for {start_delay} s before taking off")
@@ -210,29 +214,59 @@ async def setup_acc(keys):
                     logger.error(f"[{formatted_key}] Insufficient funds in StarkNet. Balance: {balance} ETH")
                     break
             except Exception as err:
-                if "Invalid transaction nonce" in str(err):
-                    logger.error(f"[{formatted_key}] Invalid transaction nonce. Retrying the task...")
+                if "nonce" in str(err):
+                    logger.error(f"[{formatted_key}] Invalid transaction nonce.")
+                elif "Insufficient tokens on balance to add a liquidity pair. Only ETH is available" in str(err):
+                    logger.error(f"[{formatted_key}] {err}")
+                elif "host starknet-mainnet.infura.io" in str(err):
+                    logger.error(f"[{formatted_key}] {err}")
                     try:
+                        retry_delay = randint(15, 30)
+                        logger.info(f"[{formatted_key}] Sleeping for {retry_delay} s before retrying")
+                        await sleep(retry_delay)
                         await task()
                     except Exception as retry_err:
-                        logger.error(f"[{formatted_key}] Error while retrying task after nonce issue: {retry_err}")
-                elif "Insufficient tokens on balance to add a liquidity pair. Only ETH is available" in str(err):
-                    logger.error(f"[{formatted_key}] Insufficient tokens on balance to add a liquidity pair. Only ETH is available")
+                        logger.error(f"[{formatted_key}] Error while retrying task after connection issue: {retry_err}")
+                elif "Transaction reverted: Error in the called contract." in str(err):
+                    logger.error(f"[{formatted_key}] {err}")
                 else:
                     logger.error(f"[{formatted_key}] Error while performing task: {err}")
 
-        if SWAP_ALL_TO_ETH is True:
-            logger.info(f"[{formatted_key}] Swapping all the tokens to ETH")
-            TenkSwap_client = TenkSwap(client=client, TENK_SWAP_PERCENTAGE=TENK_SWAP_PERCENTAGE, SLIPPAGE=SWAP_SLIPPAGE)
-            for _ in range(3):
-                task_delay = randint(MIN_RANDOM_DELAY, MAX_RANDOM_DELAY)
-                logger.info(f"[{formatted_key}] Sleeping for {task_delay} s before doing next swap")
-                await sleep(task_delay)
-                try:
-                    await TenkSwap_client.swap(swap_to_eth=True)
-                except Exception as err:
-                    logger.error(f"[{formatted_key}] Err:  {err}")
-                    continue
+        if isinstance(JEDISWAP_LP_COUNT, int) and JEDISWAP_LP_COUNT != 0:
+            JediSwap_client = JediSwap(client=client, JEDISWAP_SWAP_PERCENTAGE=JEDISWAP_SWAP_PERCENTAGE, JEDISWAP_LIQ_PERCENTAGE=JEDISWAP_LIQ_PERCENTAGE, SLIPPAGE=SWAP_SLIPPAGE)
+            try:
+                await JediSwap_client.add_liquidity()
+            except Exception as err:
+                if "nonce" in str(err):
+                    logger.error(f"[{formatted_key}] Invalid transaction nonce.")
+                elif "Insufficient tokens on balance to add a liquidity pair. Only ETH is available" in str(err):
+                    logger.error(f"[{formatted_key}] {err}")
+                elif "host starknet-mainnet.infura.io" in str(err):
+                    logger.error(f"[{formatted_key}] {err}")
+                    try:
+                        retry_delay = randint(15, 30)
+                        logger.info(f"[{formatted_key}] Sleeping for {retry_delay} s before retrying")
+                        await sleep(retry_delay)
+                        await JediSwap_client.add_liquidity()
+                    except Exception as retry_err:
+                        logger.error(f"[{formatted_key}] Error while retrying task after connection issue: {retry_err}")
+                elif "Transaction reverted: Error in the called contract." in str(err):
+                    logger.error(f"[{formatted_key}] {err}")
+                else:
+                    logger.error(f"[{formatted_key}] {err}")
+
+        # if SWAP_ALL_TO_ETH is True:
+        #     logger.info(f"[{formatted_key}] Swapping all the tokens to ETH")
+        #     TenkSwap_client = TenkSwap(client=client, TENK_SWAP_PERCENTAGE=TENK_SWAP_PERCENTAGE, SLIPPAGE=SWAP_SLIPPAGE)
+        #     for _ in range(3):
+        #         task_delay = randint(MIN_RANDOM_DELAY, MAX_RANDOM_DELAY)
+        #         logger.info(f"[{formatted_key}] Sleeping for {task_delay} s before doing next swap")
+        #         await sleep(task_delay)
+        #         try:
+        #             await TenkSwap_client.swap(swap_to_eth=True)
+        #         except Exception as err:
+        #             logger.error(f"[{formatted_key}] Err:  {err}")
+        #             continue
     except Exception as err:
         logger.error(f"Unexpected error: {err}. Stopped working ")
 

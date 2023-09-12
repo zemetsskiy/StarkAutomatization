@@ -12,13 +12,13 @@ async def GetDataForSwap(client: Client, SWAP_PERCENTAGE, swap_to_eth=False):
         USDC = ContractInfo.USDC.get('address')
         DAI = ContractInfo.DAI.get('address')
 
-        tokens_list = [ETH, USDC, USDT, DAI]  # Возвращаем ETH в список
+        tokens_list = [ETH, USDC, USDT, DAI]
 
         if swap_to_eth:
             to_token = ETH
             to_token_name = 'ETH'
             to_token_address = ETH
-            tokens_list.remove(ETH)  # Удаляем ETH, чтобы не выбирать его как `from_token`
+            tokens_list.remove(ETH)
             SWAP_PERCENTAGE = 100
         else:
             shuffle(tokens_list)
@@ -61,7 +61,10 @@ async def GetDataForSwap(client: Client, SWAP_PERCENTAGE, swap_to_eth=False):
                     'from_token_decimals': from_token_decimals
                     }
     except Exception as err:
-        logger.error(f"[{client.address}] Error while getting data for swap: {err}")
+        if "Cannot connect to host starknet-mainnet.infura.io" in str(err):
+            raise ValueError("Some problems with rpc. Cannot connect to host starknet-mainnet.infura.io")
+        else:
+            logger.error(f"[{client.address_to_log}] Error while getting data for swap: {err}")
 
 
 async def GetDataForLP(client: Client, dex, JEDISWAP_LIQ_PERCENTAGE):
@@ -161,4 +164,4 @@ async def GetDataForLP(client: Client, dex, JEDISWAP_LIQ_PERCENTAGE):
                     'token_two_decimals': token_two_decimals
                     }
     except Exception as err:
-        logger.error(f"[{client.address_to_log}] Error while getting data for adding liquidity: {err}")
+        raise ValueError(f"[{client.address_to_log}] Error while getting data for adding liquidity: {err}")

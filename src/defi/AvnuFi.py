@@ -22,7 +22,7 @@ class AvnuFi:
             router = ContractInfo.JEDISWAP.get('address')
 
             global min_amount
-            min_amount = 0
+            #min_amount = 0
 
             if not data_for_swap:
                 data_for_swap = await GetDataForSwap(client=self.client, SWAP_PERCENTAGE=self.percentage, swap_to_eth=swap_to_eth)
@@ -91,6 +91,10 @@ class AvnuFi:
             if "Contract not found" in str(err):
                 logger.error(f"[{self.client.address_to_log}] Seems contract (address) is not deployed yet because it did not have any txs before [AvnuFi]")
             elif "Invalid transaction nonce" in str(err):
-                raise ValueError("Invalid transaction nonce")
+                raise ValueError("Invalid transaction nonce [AvnuFi]")
+            elif "Cannot connect to host" in str(err):
+                raise ValueError("Some problems with rpc. Cannot connect to host starknet-mainnet.infura.io [AvnuFi]")
+            elif "Transaction reverted: Error in the called contract." in str(err):
+                raise ValueError(str(err))
             else:
                 logger.error(f"[{self.client.address_to_log}] Error while swapping: {err} [AvnuFi]")

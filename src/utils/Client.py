@@ -35,41 +35,77 @@ class Client:
 
         logger.info(f"[{self.address_to_log}] Approving {token_name}")
 
-        contract = Contract(address=token_address, abi=abi, provider=self.account)
-        prepared_tx = contract.functions['approve'].prepare(spender=spender, amount=amount_to_approve)
-        fee = await self.estimate_fee(prepared_tx)
+        MAX_RETRIES = 4
+        retries = 0
 
-        tx = await prepared_tx.invoke(max_fee=int(fee * (1 + randint(15, 25) / 100)))
-
-        for _ in range(100):
+        while retries < MAX_RETRIES:
             try:
-                receipt = await self.account.client.get_transaction_receipt(tx.hash)
-                block = receipt.block_number
-                if block:
-                    return True
-            except:
-                pass
-            finally:
-                await asyncio.sleep(3)
+                contract = Contract(address=token_address, abi=abi, provider=self.account)
+                prepared_tx = contract.functions['approve'].prepare(spender=spender, amount=amount_to_approve)
+                fee = await self.estimate_fee(prepared_tx)
+
+                tx = await prepared_tx.invoke(max_fee=int(fee * (1 + randint(15, 25) / 100)))
+
+                for _ in range(100):
+                    try:
+                        receipt = await self.account.client.get_transaction_receipt(tx.hash)
+                        block = receipt.block_number
+                        if block:
+                            return True
+                    except:
+                        pass
+                    finally:
+                        await asyncio.sleep(3)
+            except Exception as err:
+                if "nonce" in str(err):
+                    retries += 1
+                    logger.error(f"Invalid transaction nonce. Attempt {retries} of {MAX_RETRIES}. Trying to approve again.")
+                    if retries == MAX_RETRIES:
+                        raise ValueError("Invalid transaction nonce.")
+                elif "Transaction reverted:" in str(err):
+                    raise ValueError("Transaction reverted: Error in the called contract.")
+                elif "balance is smaller than the transaction's max_fee" in str(err):
+                    raise ValueError("Account balance is smaller than the transaction's max_fee.")
+                else:
+                    raise ValueError(f"Error while approving: {err}")
 
     async def call(self, interacted_contract_address, calldata, selector_name):
-        try:
-            logger.info(f"[{self.address_to_log}] Sending tx")
-            call = Call(to_addr=interacted_contract_address, selector=get_selector_from_name(selector_name), calldata=calldata)
-            max_fee = TokenAmount(amount=float(uniform(0.0007534534534, 0.001)))
-            response = await self.account.execute(calls=[call], max_fee=int(max_fee.Wei * (1 + randint(15, 25) / 100)))
-            for _ in range(100):
-                try:
-                    receipt = await self.account.client.get_transaction_receipt(response.transaction_hash)
-                    block = receipt.block_number
-                    if block:
-                        return True
-                except:
-                    pass
-                finally:
-                    await asyncio.sleep(3)
-        except Exception as err:
-            logger.error(f"Error while sending tx: {err}")
+        MAX_RETRIES = 4
+        retries = 0
+
+        while retries < MAX_RETRIES:
+            try:
+                logger.info(f"[{self.address_to_log}] Sending tx")
+
+                call = Call(to_addr=interacted_contract_address, selector=get_selector_from_name(selector_name),
+                            calldata=calldata)
+                max_fee = TokenAmount(amount=float(uniform(0.0007534534534, 0.001)))
+                response = await self.account.execute(calls=[call],
+                                                      max_fee=int(max_fee.Wei * (1 + randint(15, 25) / 100)))
+
+                for _ in range(100):
+                    try:
+                        receipt = await self.account.client.get_transaction_receipt(response.transaction_hash)
+                        block = receipt.block_number
+                        if block:
+                            return True
+                    except:
+                        pass
+                    finally:
+                        await asyncio.sleep(3)
+
+            except Exception as err:
+                if "Invalid transaction nonce" in str(err):
+                    retries += 1
+                    logger.error(f"Invalid transaction nonce. Attempt {retries} of {MAX_RETRIES}. Trying to call again.")
+                    if retries == MAX_RETRIES:
+                        raise ValueError("Invalid transaction nonce.")
+                elif "Transaction reverted:" in str(err):
+                    raise ValueError("Transaction reverted: Error in the called contract.")
+                elif "balance is smaller than the transaction's max_fee" in str(err):
+                    raise ValueError("Account balance is smaller than the transaction's max_fee.")
+                else:
+                    raise ValueError(f"Error while sending tx: {err}")
 
     async def get_allowance(self, token_address, spender):
         data = ContractInfo.GetData(token_address)
@@ -111,24 +147,40 @@ class Client:
         return False
 
     async def send_transaction(self, interacted_contract, function_name=None, **kwargs):
-        try:
-            logger.info(f"[{self.address_to_log}] Sending tx")
+        MAX_RETRIES = 4
+        retries = 0
 
-            prepared_tx = interacted_contract.functions[function_name].prepare(**kwargs)
-            fee = await self.estimate_fee(prepared_tx)
-            tx = await prepared_tx.invoke(max_fee=int(fee * (1 + randint(15, 25) / 100)))
-            for _ in range(100):
-                try:
-                    receipt = await self.account.client.get_transaction_receipt(tx.hash)
-                    block = receipt.block_number
-                    if block:
-                        return True
-                except:
-                    pass
-                finally:
-                    await asyncio.sleep(3)
-        except Exception as err:
-            logger.error(f"Error while sending tx: {err}")
+        while retries < MAX_RETRIES:
+            try:
+                logger.info(f"[{self.address_to_log}] Sending tx")
+
+                prepared_tx = interacted_contract.functions[function_name].prepare(**kwargs)
+                fee = await self.estimate_fee(prepared_tx)
+                tx = await prepared_tx.invoke(max_fee=int(fee * (1 + randint(15, 25) / 100)))
+
+                for _ in range(100):
+                    try:
+                        receipt = await self.account.client.get_transaction_receipt(tx.hash)
+                        block = receipt.block_number
+                        if block:
+                            return True
+                    except:
+                        pass
+                    finally:
+                        await asyncio.sleep(3)
+
+            except Exception as err:
+                if "nonce" in str(err):
+                    retries += 1
+                    logger.error(f"Invalid transaction nonce. Attempt {retries} of {MAX_RETRIES}. Trying to send tx again.")
+                    if retries == MAX_RETRIES:
+                        raise ValueError("Invalid transaction nonce.")
+                elif "Transaction reverted:" in str(err):
+                    raise ValueError("Transaction reverted: Error in the called contract.")
+                elif "balance is smaller than the transaction's max_fee" in str(err):
+                    raise ValueError("Account balance is smaller than the transaction's max_fee.")
+                else:
+                    raise ValueError(f"Error while sending tx: {err}")
 
     async def get_balance(self, token_address=ContractInfo.ETH.get('address'), decimals=18):
         balance = await self.account.get_balance(token_address=token_address)

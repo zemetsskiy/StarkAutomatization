@@ -33,7 +33,6 @@ class TenkSwap:
     async def swap(self, swap_to_eth=False):
         try:
             global min_amount
-            min_amount = 0
 
             data_for_swap = await GetDataForSwap(client=self.client, SWAP_PERCENTAGE=self.percentage, swap_to_eth=swap_to_eth)
             if data_for_swap == {}:
@@ -82,6 +81,10 @@ class TenkSwap:
             if "Contract not found" in str(err):
                 logger.error(f"[{self.client.address_to_log}] Seems contract (address) is not deployed yet because it did not have any txs before [10kSwap]")
             elif "Invalid transaction nonce" in str(err):
-                raise ValueError("Invalid transaction nonce")
+                raise ValueError("Invalid transaction nonce [10kSwap]")
+            elif "Cannot connect to host" in str(err):
+                raise ValueError("Some problems with rpc. Cannot connect to host starknet-mainnet.infura.io [10kSwap]")
+            elif "Transaction reverted: Error in the called contract." in str(err):
+                raise ValueError(str(err))
             else:
                 logger.error(f"[{self.client.address_to_log}] Error while swapping: {err} [10kSwap]")

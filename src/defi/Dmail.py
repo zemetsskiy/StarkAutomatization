@@ -38,7 +38,7 @@ class Dmail:
 
     async def send_message(self):
         try:
-            logger.info(f"[{self.client.address}] Sending message [Dmail]")
+            logger.info(f"[{self.client.address_to_log}] Sending message [Dmail]")
             email = self.get_random_email()
             text = self.construct_random_sentence()
             tx_hash = await self.client.send_transaction(interacted_contract=self.contract,
@@ -46,15 +46,19 @@ class Dmail:
                                                          to=email,
                                                          theme=text)
             if tx_hash:
-                logger.info(f"[{self.client.address}] Message '{text}' was successfully sent to {email} [Dmail]")
+                logger.info(f"[{self.client.address_to_log}] Message '{text}' was successfully sent to {email} [Dmail]")
                 return True
         except Exception as err:
             if "Contract not found" in str(err):
                 logger.error(f"[{self.client.address_to_log}] Seems contract (address) is not deployed yet because it did not have any txs before [Dmail]")
-            elif "Invalid transaction nonce" in str(err):
-                raise ValueError("Invalid transaction nonce")
+            elif "nonce" in str(err):
+                raise ValueError(str(err))
+            elif "Cannot connect to host" in str(err):
+                raise ValueError("Some problems with rpc. Cannot connect to host starknet-mainnet.infura.io [Dmail]")
+            elif "Transaction reverted: Error in the called contract." in str(err):
+                raise ValueError(str(err))
             else:
-                logger.error(f"[{self.client.address_to_log}] Error while message sending: {err} [Dmail]")
+                logger.error(f"[{self.client.address_to_log}] Error while sending message: {err} [Dmail]")
 
     @staticmethod
     def get_random_email():

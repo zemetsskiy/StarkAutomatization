@@ -44,8 +44,8 @@ class JediSwap:
 
     async def swap(self, swap_to_eth=False):
         try:
-            global min_amount
-            min_amount = 0
+            global min_to_amount
+            #min_amount = 0
 
             data_for_swap = await GetDataForSwap(client=self.client, SWAP_PERCENTAGE=self.swap_percentage, swap_to_eth=swap_to_eth)
 
@@ -54,49 +54,75 @@ class JediSwap:
 
             amount, to_token_address, to_token_name, from_token_address, from_token_name, from_token_decimals = data_for_swap.values()
 
+            eth_price = self.client.get_eth_price()
+            if to_token_name == 'USDT' or to_token_name == 'USDC':
+                if from_token_name == 'ETH':
+                    min_to_amount = TokenAmount(amount=eth_price * float(amount.Ether) * (1 - self.slippage / 100),
+                                                decimals=6)
+                elif from_token_name == 'DAI':
+                    min_to_amount = TokenAmount(amount=float(amount.Ether) * (1 - self.slippage / 100),
+                                                decimals=6)
+            elif to_token_name == 'ETH':
+                min_to_amount = TokenAmount(amount=float(amount.Ether) / eth_price * (1 - self.slippage / 100),
+                                            decimals=18)
+            elif to_token_name == 'DAI':
+                if from_token_name == 'USDT' or from_token_name == 'USDC':
+                    min_to_amount = TokenAmount(amount=float(amount.Ether) * (1 - self.slippage / 100), decimals=18)
+                elif from_token_name == 'ETH':
+                    min_to_amount = TokenAmount(amount=eth_price * float(amount.Ether) * (1 - self.slippage / 100),
+                                                decimals=18)
+
+
+
+
+
             logger.info(f"[{self.client.address_to_log}] Swapping {amount.Ether} {from_token_name} to {to_token_name} [JediSwap]")
             is_approved = await self.client.approve_interface(token_address=from_token_address,
                                                               spender=JediSwap.JEDISWAP_CONTRACT,
                                                               decimals=from_token_decimals, amount=amount)
+            # if is_approved:
+            #     eth_price = Client.get_eth_price()
+            #     if to_token_name == 'USDT' or to_token_name == 'USDC':
+            #         if from_token_name == 'ETH':
+            #             min_to_amount = TokenAmount(amount=eth_price * float(amount.Ether) * (1 - self.slippage / 100), decimals=6)
+            #             min_amount = min_to_amount
+            #         elif from_token_name == 'DAI':
+            #             min_to_amount = TokenAmount(amount=float(amount.Ether) * (1 - self.slippage / 100), decimals=6)
+            #             min_amount = min_to_amount
+            #
+            #     elif to_token_name == 'ETH':
+            #         min_to_amount = TokenAmount(amount=float(amount.Ether) / eth_price * (1 - self.slippage / 100), decimals=18)
+            #         min_amount = min_to_amount
+            #
+            #     elif to_token_name == 'DAI':
+            #         if from_token_name == 'USDT' or from_token_name == 'USDC':
+            #             min_to_amount = TokenAmount(amount=float(amount.Ether) * (1 - self.slippage / 100), decimals=18)
+            #             min_amount = min_to_amount
+            #
+            #         elif from_token_name == 'ETH':
+            #             min_to_amount = TokenAmount(amount=eth_price * float(amount.Ether) * (1 - self.slippage / 100), decimals=18)
+            #             min_amount = min_to_amount
             if is_approved:
-                eth_price = Client.get_eth_price()
-                if to_token_name == 'USDT' or to_token_name == 'USDC':
-                    if from_token_name == 'ETH':
-                        min_to_amount = TokenAmount(amount=eth_price * float(amount.Ether) * (1 - self.slippage / 100), decimals=6)
-                        min_amount = min_to_amount
-                    elif from_token_name == 'DAI':
-                        min_to_amount = TokenAmount(amount=float(amount.Ether) * (1 - self.slippage / 100), decimals=6)
-                        min_amount = min_to_amount
-
-                elif to_token_name == 'ETH':
-                    min_to_amount = TokenAmount(amount=float(amount.Ether) / eth_price * (1 - self.slippage / 100), decimals=18)
-                    min_amount = min_to_amount
-
-                elif to_token_name == 'DAI':
-                    if from_token_name == 'USDT' or from_token_name == 'USDC':
-                        min_to_amount = TokenAmount(amount=float(amount.Ether) * (1 - self.slippage / 100), decimals=18)
-                        min_amount = min_to_amount
-
-                    elif from_token_name == 'ETH':
-                        min_to_amount = TokenAmount(amount=eth_price * float(amount.Ether) * (1 - self.slippage / 100), decimals=18)
-                        min_amount = min_to_amount
-
 
                 tx_hash = await self.client.send_transaction(interacted_contract=self.contract,
                                                              function_name='swap_exact_tokens_for_tokens',
                                                              amountIn=int(amount.Wei * 0.99),
-                                                             amountOutMin=min_amount.Wei,
+                                                             amountOutMin=min_to_amount.Wei,
                                                              path=[from_token_address, to_token_address],
                                                              to=self.client.address,
                                                              deadline=int(time() + 3600))
                 if tx_hash:
-                    logger.info(f"[{self.client.address_to_log}] Successfully swapped {amount.Ether} {from_token_name} to {min_amount.Ether} {to_token_name} [JediSwap]")
+                    logger.info(f"[{self.client.address_to_log}] Successfully swapped {amount.Ether} {from_token_name} to {min_to_amount.Ether} {to_token_name} [JediSwap]")
                     return True
         except Exception as err:
             if "Contract not found" in str(err):
                 logger.error(f"[{self.client.address_to_log}] Seems contract (address) is not deployed yet because it did not have any txs before [JediSwap]")
-            elif "Invalid transaction nonce" in str(err):
-                raise ValueError("Invalid transaction nonce")
+            elif "nonce" in str(err):
+                raise ValueError("Invalid transaction nonce [JediSwap]")
+            elif "Cannot connect to host" in str(err):
+                raise ValueError("Some problems with rpc. Cannot connect to host starknet-mainnet.infura.io [JediSwap]")
+            elif "Transaction reverted: Error in the called contract." in str(err):
+                raise ValueError(str(err))
             else:
                 logger.error(f"[{self.client.address_to_log}] Error while swapping: {err} [JediSwap]")
 
@@ -141,7 +167,7 @@ class JediSwap:
             elif "Insufficient tokens on balance to add a liquidity pair. Only ETH is available" in str(err):
                 raise ValueError("Insufficient tokens on balance to add a liquidity pair. Only ETH is available")
             else:
-                logger.error(f"[{self.client.address_to_log}] Error while adding $ to LP: {err} [JediSwap]")
+                logger.error(f"[{self.client.address_to_log}] {err} [JediSwap]")
 
     async def remove_liquidity(self, lp_contract, amountA=None, amountB=None):
         global tokenA, tokenB
@@ -180,16 +206,3 @@ class JediSwap:
                 raise ValueError("Invalid transaction nonce")
             else:
                 logger.error(f"[{self.client.address_to_log}] Error while removing $ from LP: {err} [JediSwap]")
-
-    async def swap_all_to_eth(self):
-        tokens_to_swap = [ContractInfo.USDT.get('address'), ContractInfo.USDC.get('address'),
-                          ContractInfo.DAI.get('address')]
-
-        for token_address in tokens_to_swap:
-            token_balance = await self.client.get_balance(token_address=token_address,
-                                                          decimals=ContractInfo.GetData(token_address).get('decimals'))
-
-            if token_balance.Wei > 0:
-                await self.swap(swap_to_eth=True)
-
-        return True
