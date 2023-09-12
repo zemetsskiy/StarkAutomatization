@@ -27,4 +27,3 @@ actions:
   10kswap-swap-percentage: 80
   dmail-min-messages-count: 0
   dmail-max-messages-count: 0
-  swap-all-tokens-to-eth-at-the-end: True
