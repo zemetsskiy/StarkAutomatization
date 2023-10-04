@@ -32,38 +32,6 @@ class AvnuFi:
 
             amount, to_token_address, to_token_name, from_token_address, from_token_name, from_token_decimals = data_for_swap.values()
 
-            routes = [
-                 [
-                    {
-                    "name": "token_from",
-                    "type": "core::starknet::contract_address::ContractAddress",
-                    "value": str(from_token_address)
-                    },
-                    {
-                        "name": "token_to",
-                        "type": "core::starknet::contract_address::ContractAddress",
-                        "value": str(to_token_address)
-                    },
-                    {
-                    "name": "exchange_address",
-                    "type": "core::starknet::contract_address::ContractAddress",
-                    "value": "0x41fd22b238fa21cfcf5dd45a8548974d8263b3a531a60388411c5e230f97023"
-                    },
-                    {
-                    "name": "percent",
-                    "type": "core::integer::u128",
-                    "value": "d"
-                    },
-                    {
-                    "name": "additional_swap_params",
-                    "type": "core::array::Array::<core::felt252>",
-                        "value": []
-                            }
-                        ]
-                    ]
-
-            route = 0x041fd22b238fa21cfcf5dd45a8548974d8263b3a531a60388411c5e230f97023
-
             logger.info(f"[{self.client.address_to_log}] Swapping {amount.Ether} {from_token_name} to {to_token_name} [AvnuFi]")
             is_approved = await self.client.approve_interface(
                                                               token_address=from_token_address,
@@ -104,13 +72,21 @@ class AvnuFi:
                                                  calldata=[
                                                      from_token_address,
                                                      int(amount.Wei * 0.99),
+                                                     0,
                                                      to_token_address,
                                                      min_amount.Wei,
+                                                     0,
                                                      min_amount.Wei,
+                                                     0,
                                                      self.client.address,
                                                      0,
                                                      0,
-                                                     routes
+                                                     1,
+                                                     from_token_address,
+                                                     to_token_address,
+                                                     router,
+                                                     0x64,
+                                                     0
                                                  ],
                                                  selector_name='multi_route_swap')
                 if tx_hash:
