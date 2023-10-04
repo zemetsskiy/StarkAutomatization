@@ -97,4 +97,4 @@ class AvnuFi:
             elif "Transaction reverted: Error in the called contract." in str(err):
                 raise ValueError(str(err))
             else:
-                logger.error(f"[{self.client.address_to_log}] Error while swapping: {err} [AvnuFi]")
+                raise ValueError(f"{str(err)} [AvnuFi]")
