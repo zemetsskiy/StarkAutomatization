@@ -187,7 +187,7 @@ class Client:
         return TokenAmount(amount=balance, wei=True, decimals=decimals)
 
     @staticmethod
-    def get_eth_price():
+    def get_eth_price_old():
         response = requests.get(f'https://api.binance.com/api/v3/depth?limit=1&symbol=ETHUSDT')
         if response.status_code != 200:
             logger.error(f"Response Status Code: {response.status_code} json: {response.json()}")
@@ -197,6 +197,19 @@ class Client:
             logger.error(f"Response Status Code: {response.status_code} json: {response.json()}")
             return
         return float(result['asks'][0][0])
+
+    @staticmethod
+    def get_eth_price():
+        url = 'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd'
+
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            if 'ethereum' in data and 'usd' in data['ethereum']:
+                eth_to_usd = data['ethereum']['usd']
+                return float(eth_to_usd)
+        else:
+            return None
 
     async def estimate_fee(self, tx):
         response = await tx.estimate_fee()
