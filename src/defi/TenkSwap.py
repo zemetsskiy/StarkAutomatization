@@ -52,6 +52,8 @@ class TenkSwap:
                     elif from_token_name == 'DAI':
                         min_to_amount = TokenAmount(amount=float(amount.Ether) * (1 - self.slippage / 100), decimals=6)
                         min_amount = min_to_amount
+                    elif from_token_name == 'USDT' or from_token_name == 'USDC':
+                        min_to_amount = TokenAmount(amount=float(amount.Ether) * (1 - self.slippage / 100), decimals=18)
 
                 elif to_token_name == 'ETH':
                     min_to_amount = TokenAmount(amount=float(amount.Ether) / eth_price * (1 - self.slippage / 100), decimals=18)
