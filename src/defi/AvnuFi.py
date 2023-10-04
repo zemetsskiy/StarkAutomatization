@@ -42,7 +42,7 @@ class AvnuFi:
                     {
                         "name": "token_to",
                         "type": "core::starknet::contract_address::ContractAddress",
-                        "value": token_to_address
+                        "value": to_token_address
                     },
                     {
                     "name": "exchange_address",
