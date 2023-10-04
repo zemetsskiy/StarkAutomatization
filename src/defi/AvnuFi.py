@@ -61,7 +61,8 @@ class AvnuFi:
                             }
                         ]
                     ]
-   
+
+            route = 0x041fd22b238fa21cfcf5dd45a8548974d8263b3a531a60388411c5e230f97023
 
             logger.info(f"[{self.client.address_to_log}] Swapping {amount.Ether} {from_token_name} to {to_token_name} [AvnuFi]")
             is_approved = await self.client.approve_interface(
@@ -109,7 +110,7 @@ class AvnuFi:
                                                      self.client.address,
                                                      0,
                                                      0,
-                                                     routes=0x041fd22b238fa21cfcf5dd45a8548974d8263b3a531a60388411c5e230f97023
+                                                     route
                                                  ],
                                                  selector_name='multi_route_swap')
                 if tx_hash:
