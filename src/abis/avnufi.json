@@ -1,252 +1,337 @@
 [
   {
-    "name": "Uint256",
-    "size": 2,
+    "name": "ExchangeLocker",
+    "type": "impl",
+    "interface_name": "avnu::interfaces::locker::ILocker"
+  },
+  {
+    "name": "avnu::interfaces::locker::ILocker",
+    "type": "interface",
+    "items": [
+      {
+        "name": "locked",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "id",
+            "type": "core::integer::u32"
+          },
+          {
+            "name": "data",
+            "type": "core::array::Array::<core::felt252>"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::array::Array::<core::felt252>"
+          }
+        ],
+        "state_mutability": "external"
+      }
+    ]
+  },
+  {
+    "name": "Exchange",
+    "type": "impl",
+    "interface_name": "avnu::exchange::IExchange"
+  },
+  {
+    "name": "core::integer::u256",
     "type": "struct",
     "members": [
       {
         "name": "low",
-        "type": "felt",
-        "offset": 0
+        "type": "core::integer::u128"
       },
       {
         "name": "high",
-        "type": "felt",
-        "offset": 1
+        "type": "core::integer::u128"
       }
     ]
   },
   {
-    "name": "Route",
-    "size": 4,
+    "name": "avnu::models::Route",
     "type": "struct",
     "members": [
       {
         "name": "token_from",
-        "type": "felt",
-        "offset": 0
+        "type": "core::starknet::contract_address::ContractAddress"
       },
       {
         "name": "token_to",
-        "type": "felt",
-        "offset": 1
+        "type": "core::starknet::contract_address::ContractAddress"
       },
       {
         "name": "exchange_address",
-        "type": "felt",
-        "offset": 2
+        "type": "core::starknet::contract_address::ContractAddress"
       },
       {
         "name": "percent",
-        "type": "felt",
-        "offset": 3
+        "type": "core::integer::u128"
+      },
+      {
+        "name": "additional_swap_params",
+        "type": "core::array::Array::<core::felt252>"
       }
     ]
   },
   {
-    "data": [
+    "name": "core::bool",
+    "type": "enum",
+    "variants": [
       {
-        "name": "previousOwner",
-        "type": "felt"
+        "name": "False",
+        "type": "()"
       },
       {
-        "name": "newOwner",
-        "type": "felt"
+        "name": "True",
+        "type": "()"
       }
-    ],
-    "keys": [],
-    "name": "OwnershipTransferred",
-    "type": "event"
+    ]
   },
   {
-    "data": [
+    "name": "avnu::exchange::IExchange",
+    "type": "interface",
+    "items": [
       {
-        "name": "implementation",
-        "type": "felt"
+        "name": "get_adapter_class_hash",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "exchange_address",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::starknet::class_hash::ClassHash"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "name": "get_fee_collector_address",
+        "type": "function",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "name": "get_owner",
+        "type": "function",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "name": "multi_route_swap",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "token_from_address",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "token_from_amount",
+            "type": "core::integer::u256"
+          },
+          {
+            "name": "token_to_address",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "token_to_amount",
+            "type": "core::integer::u256"
+          },
+          {
+            "name": "token_to_min_amount",
+            "type": "core::integer::u256"
+          },
+          {
+            "name": "beneficiary",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "integrator_fee_amount_bps",
+            "type": "core::integer::u128"
+          },
+          {
+            "name": "integrator_fee_recipient",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "routes",
+            "type": "core::array::Array::<avnu::models::Route>"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "name": "set_adapter_class_hash",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "exchange_address",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "adapter_class_hash",
+            "type": "core::starknet::class_hash::ClassHash"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "name": "set_fee_collector_address",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "new_fee_collector_address",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "name": "transfer_ownership",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "new_owner",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "name": "upgrade_class",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "new_class_hash",
+            "type": "core::starknet::class_hash::ClassHash"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "external"
       }
-    ],
-    "keys": [],
-    "name": "Upgraded",
-    "type": "event"
+    ]
   },
   {
-    "data": [
-      {
-        "name": "previousAdmin",
-        "type": "felt"
-      },
-      {
-        "name": "newAdmin",
-        "type": "felt"
-      }
-    ],
-    "keys": [],
-    "name": "AdminChanged",
-    "type": "event"
-  },
-  {
-    "data": [
-      {
-        "name": "taker_address",
-        "type": "felt"
-      },
-      {
-        "name": "sell_address",
-        "type": "felt"
-      },
-      {
-        "name": "sell_amount",
-        "type": "felt"
-      },
-      {
-        "name": "buy_address",
-        "type": "felt"
-      },
-      {
-        "name": "buy_amount",
-        "type": "felt"
-      },
-      {
-        "name": "beneficiary",
-        "type": "felt"
-      }
-    ],
-    "keys": [],
-    "name": "Swap",
-    "type": "event"
-  },
-  {
-    "name": "initializer",
-    "type": "function",
+    "name": "constructor",
+    "type": "constructor",
     "inputs": [
       {
         "name": "owner",
-        "type": "felt"
+        "type": "core::starknet::contract_address::ContractAddress"
       },
       {
         "name": "fee_collector_address",
-        "type": "felt"
-      }
-    ],
-    "outputs": []
-  },
-  {
-    "name": "getName",
-    "type": "function",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "name",
-        "type": "felt"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "name": "getAdapterClassHash",
-    "type": "function",
-    "inputs": [
-      {
-        "name": "exchange_address",
-        "type": "felt"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "adapter_class_hash",
-        "type": "felt"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "name": "getFeeCollectorAddress",
-    "type": "function",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "fee_collector_address",
-        "type": "felt"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "name": "multi_route_swap",
-    "type": "function",
-    "inputs": [
-      {
-        "name": "token_from_address",
-        "type": "felt"
-      },
-      {
-        "name": "token_from_amount",
-        "type": "Uint256"
-      },
-      {
-        "name": "token_to_address",
-        "type": "felt"
-      },
-      {
-        "name": "token_to_amount",
-        "type": "Uint256"
-      },
-      {
-        "name": "token_to_min_amount",
-        "type": "Uint256"
-      },
-      {
-        "name": "beneficiary",
-        "type": "felt"
-      },
-      {
-        "name": "integrator_fee_amount_bps",
-        "type": "felt"
-      },
-      {
-        "name": "integrator_fee_recipient",
-        "type": "felt"
-      },
-      {
-        "name": "routes_len",
-        "type": "felt"
-      },
-      {
-        "name": "routes",
-        "type": "Route*"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "success",
-        "type": "felt"
+        "type": "core::starknet::contract_address::ContractAddress"
       }
     ]
   },
   {
-    "name": "setAdapterClassHash",
-    "type": "function",
-    "inputs": [
+    "kind": "struct",
+    "name": "avnu::exchange::Exchange::Swap",
+    "type": "event",
+    "members": [
       {
-        "name": "exchange_address",
-        "type": "felt"
+        "kind": "data",
+        "name": "taker_address",
+        "type": "core::starknet::contract_address::ContractAddress"
       },
       {
-        "name": "adapter_class_hash",
-        "type": "felt"
+        "kind": "data",
+        "name": "sell_address",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "kind": "data",
+        "name": "sell_amount",
+        "type": "core::integer::u256"
+      },
+      {
+        "kind": "data",
+        "name": "buy_address",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "kind": "data",
+        "name": "buy_amount",
+        "type": "core::integer::u256"
+      },
+      {
+        "kind": "data",
+        "name": "beneficiary",
+        "type": "core::starknet::contract_address::ContractAddress"
       }
-    ],
-    "outputs": []
+    ]
   },
   {
-    "name": "setFeeCollectorAddress",
-    "type": "function",
-    "inputs": [
+    "kind": "struct",
+    "name": "avnu::exchange::Exchange::OwnershipTransferred",
+    "type": "event",
+    "members": [
       {
-        "name": "new_fee_collector_address",
-        "type": "felt"
+        "kind": "data",
+        "name": "previous_owner",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "kind": "data",
+        "name": "new_owner",
+        "type": "core::starknet::contract_address::ContractAddress"
       }
-    ],
-    "outputs": []
+    ]
+  },
+  {
+    "kind": "enum",
+    "name": "avnu::exchange::Exchange::Event",
+    "type": "event",
+    "variants": [
+      {
+        "kind": "nested",
+        "name": "Swap",
+        "type": "avnu::exchange::Exchange::Swap"
+      },
+      {
+        "kind": "nested",
+        "name": "OwnershipTransferred",
+        "type": "avnu::exchange::Exchange::OwnershipTransferred"
+      }
+    ]
   }
 ]
