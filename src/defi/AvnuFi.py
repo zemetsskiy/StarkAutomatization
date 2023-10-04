@@ -19,7 +19,7 @@ class AvnuFi:
 
     async def swap(self, swap_to_eth=False, data_for_swap=None):
         try:
-            router = ContractInfo.JEDISWAP.get('address')
+            #router = ContractInfo.JEDISWAP.get('address')
 
             global min_amount
             #min_amount = 0
@@ -31,6 +31,37 @@ class AvnuFi:
                 return False
 
             amount, to_token_address, to_token_name, from_token_address, from_token_name, from_token_decimals = data_for_swap.values()
+
+            routes = [
+                 [
+                    {
+                    "name": "token_from",
+                    "type": "core::starknet::contract_address::ContractAddress",
+                    "value": "0x68f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8"
+                    },
+                    {
+                        "name": "token_to",
+                        "type": "core::starknet::contract_address::ContractAddress",
+                        "value": "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
+                    },
+                    {
+                    "name": "exchange_address",
+                    "type": "core::starknet::contract_address::ContractAddress",
+                    "value": "0x41fd22b238fa21cfcf5dd45a8548974d8263b3a531a60388411c5e230f97023"
+                    },
+                    {
+                    "name": "percent",
+                    "type": "core::integer::u128",
+                    "value": "d"
+                    },
+                    {
+                    "name": "additional_swap_params",
+                    "type": "core::array::Array::<core::felt252>",
+                        "value": []
+                            }
+                        ]
+                    ]
+   
 
             logger.info(f"[{self.client.address_to_log}] Swapping {amount.Ether} {from_token_name} to {to_token_name} [AvnuFi]")
             is_approved = await self.client.approve_interface(
@@ -74,7 +105,7 @@ class AvnuFi:
                                                      self.client.address,
                                                      0,
                                                      0,
-                                                     router
+                                                     routes
                                                  ],
                                                  selector_name='multi_route_swap')
                 if tx_hash:
