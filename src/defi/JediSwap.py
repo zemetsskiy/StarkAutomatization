@@ -124,7 +124,7 @@ class JediSwap:
             elif "Transaction reverted: Error in the called contract." in str(err):
                 raise ValueError(str(err))
             else:
-                raise ValueError(str(err))
+                raise ValueError(f"{str(err)} [JediSwap]")
 
     async def add_liquidity(self):
         try:
