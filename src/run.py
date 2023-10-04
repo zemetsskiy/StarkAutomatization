@@ -227,6 +227,15 @@ async def setup_acc(keys):
                         await task()
                     except Exception as retry_err:
                         logger.error(f"[{formatted_key}] Error while retrying task after connection issue: {retry_err}")
+                elif "Client failed with code 63" in str(err):
+                    logger.error(f"[{formatted_key}] {err}")
+                    try: 
+                        retry_delay = randint(15, 30)
+                        logger.info(f"[{formatted_key}] Sleeping for {retry_delay} s before retrying")
+                        await sleep(retry_delay)
+                        await task()
+                    except Exception as retry_err:
+                        logger.error(f"[{formatted_key}] Error while retrying task after 63 error: {retry_err}")
                 elif "Transaction reverted: Error in the called contract." in str(err):
                     logger.error(f"[{formatted_key}] {err}")
                 else:
