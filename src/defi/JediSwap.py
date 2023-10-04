@@ -116,7 +116,7 @@ class JediSwap:
                     return True
         except Exception as err:
             if "Contract not found" in str(err):
-                logger.error(f"[{self.client.address_to_log}] Seems contract (address) is not deployed yet because it did not have any txs before [JediSwap]")
+                raise ValueError("Seems contract (address) is not deployed yet because it did not have any txs before [JediSwap]")
             elif "nonce" in str(err):
                 raise ValueError("Invalid transaction nonce [JediSwap]")
             elif "Cannot connect to host" in str(err):
@@ -161,13 +161,13 @@ class JediSwap:
                     return True
         except Exception as err:
             if "Contract not found" in str(err):
-                logger.error(f"[{self.client.address_to_log}] Seems contract (address) is not deployed yet because it did not have any txs before [JediSwap]")
+                raise ValueError("Seems contract (address) is not deployed yet because it did not have any txs before [JediSwap]")
             elif "Invalid transaction nonce" in str(err):
                 raise ValueError("Invalid transaction nonce")
             elif "Insufficient tokens on balance to add a liquidity pair. Only ETH is available" in str(err):
                 raise ValueError("Insufficient tokens on balance to add a liquidity pair. Only ETH is available")
             else:
-                logger.error(f"[{self.client.address_to_log}] {err} [JediSwap]")
+                raise ValueError(f"{str(err)} [JediSwap]")
 
     async def remove_liquidity(self, lp_contract, amountA=None, amountB=None):
         global tokenA, tokenB
@@ -201,8 +201,9 @@ class JediSwap:
                     return True
         except Exception as err:
             if "Contract not found" in str(err):
-                logger.error(f"[{self.client.address_to_log}] Seems contract (address) is not deployed yet because it did not have any txs before [JediSwap]")
+                raise ValueError("Seems contract (address) is not deployed yet because it did not have any txs before [JediSwap]")
             elif "Invalid transaction nonce" in str(err):
                 raise ValueError("Invalid transaction nonce")
             else:
                 logger.error(f"[{self.client.address_to_log}] Error while removing $ from LP: {err} [JediSwap]")
+                raise ValueError(f"{str(err)} [JediSwap]")
