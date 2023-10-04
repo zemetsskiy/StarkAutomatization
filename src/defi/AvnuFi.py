@@ -109,7 +109,7 @@ class AvnuFi:
                                                      self.client.address,
                                                      0,
                                                      0,
-                                                     routes
+                                                     routes=0x041fd22b238fa21cfcf5dd45a8548974d8263b3a531a60388411c5e230f97023
                                                  ],
                                                  selector_name='multi_route_swap')
                 if tx_hash:
