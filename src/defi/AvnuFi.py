@@ -68,20 +68,13 @@ class AvnuFi:
                                                  calldata=[
                                                      from_token_address,
                                                      int(amount.Wei * 0.99),
-                                                     0,
                                                      to_token_address,
                                                      min_amount.Wei,
-                                                     0,
                                                      min_amount.Wei,
-                                                     0,
                                                      self.client.address,
                                                      0,
                                                      0,
-                                                     1,
-                                                     from_token_address,
-                                                     to_token_address,
-                                                     router,
-                                                     0x64
+                                                     router
                                                  ],
                                                  selector_name='multi_route_swap')
                 if tx_hash:
