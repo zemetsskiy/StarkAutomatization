@@ -89,7 +89,7 @@ class AvnuFi:
                     return True
         except Exception as err:
             if "Contract not found" in str(err):
-                logger.error(f"[{self.client.address_to_log}] Seems contract (address) is not deployed yet because it did not have any txs before [AvnuFi]")
+                raise ValueError("Seems contract (address) is not deployed yet because it did not have any txs before [AvnuFi]")
             elif "Invalid transaction nonce" in str(err):
                 raise ValueError("Invalid transaction nonce [AvnuFi]")
             elif "Cannot connect to host" in str(err):
