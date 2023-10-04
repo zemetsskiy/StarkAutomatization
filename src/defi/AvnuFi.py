@@ -37,12 +37,12 @@ class AvnuFi:
                     {
                     "name": "token_from",
                     "type": "core::starknet::contract_address::ContractAddress",
-                    "value": "0x68f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8"
+                    "value": from_token_address
                     },
                     {
                         "name": "token_to",
                         "type": "core::starknet::contract_address::ContractAddress",
-                        "value": "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
+                        "value": token_to_address
                     },
                     {
                     "name": "exchange_address",
