@@ -37,12 +37,12 @@ class AvnuFi:
                     {
                     "name": "token_from",
                     "type": "core::starknet::contract_address::ContractAddress",
-                    "value": from_token_address
+                    "value": str(from_token_address)
                     },
                     {
                         "name": "token_to",
                         "type": "core::starknet::contract_address::ContractAddress",
-                        "value": to_token_address
+                        "value": str(to_token_address)
                     },
                     {
                     "name": "exchange_address",
@@ -110,7 +110,7 @@ class AvnuFi:
                                                      self.client.address,
                                                      0,
                                                      0,
-                                                     route
+                                                     routes
                                                  ],
                                                  selector_name='multi_route_swap')
                 if tx_hash:
