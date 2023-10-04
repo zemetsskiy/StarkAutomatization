@@ -19,7 +19,7 @@ class AvnuFi:
 
     async def swap(self, swap_to_eth=False, data_for_swap=None):
         try:
-            #router = ContractInfo.JEDISWAP.get('address')
+            router = ContractInfo.JEDISWAP.get('address')
 
             global min_amount
             #min_amount = 0
