@@ -194,7 +194,7 @@ async def setup_acc(keys):
             else:
                 logger.error("You should put your evm_private_key as a 3rd param in keys.txt")
 
-        start_delay = randint(30, 60)
+        start_delay = randint(1, 5)
         logger.info(f"[{formatted_key}] Sleeping for {start_delay} s before taking off")
         await sleep(start_delay)
 

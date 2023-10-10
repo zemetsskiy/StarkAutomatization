@@ -43,8 +43,8 @@ class Dmail:
             text = self.construct_random_sentence()
             tx_hash = await self.client.send_transaction(interacted_contract=self.contract,
                                                          function_name='transaction',
-                                                         to=email,
-                                                         theme=text)
+                                                         calls=[email, text]
+                                                        )
             if tx_hash:
                 logger.info(f"[{self.client.address_to_log}] Message '{text}' was successfully sent to {email} [Dmail]")
                 return True

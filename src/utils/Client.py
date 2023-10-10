@@ -1,7 +1,8 @@
 import asyncio
 import requests
 from random import randint, uniform
-from typing import Optional
+from typing import Optional, Union
+from starknet_py.net.client_errors import ClientError
 
 from starknet_py.net.client_models import Call
 from starknet_py.hash.selector import get_selector_from_name
@@ -146,7 +147,28 @@ class Client:
             return True
         return False
 
-    async def send_transaction(self, interacted_contract, function_name=None, **kwargs):
+    async def sign_invoke_transaction(
+            self,
+            account: Account,
+            calls: list,
+            cairo_version: int,
+            auto_estimate: bool = False
+    ):
+        try:
+            return await account.sign_invoke_transaction(
+                calls=calls,
+                max_fee=0 if auto_estimate is False else None,
+                cairo_version=cairo_version,
+                auto_estimate=auto_estimate if auto_estimate is True else None
+            )
+
+        except ClientError:
+            return None
+
+
+    #async def send_transaction(self, interacted_contract, function_name=None, **kwargs):
+    async def send_transaction(self, interacted_contract, calls, function_name=None):
+
         MAX_RETRIES = 4
         retries = 0
 
@@ -154,20 +176,34 @@ class Client:
             try:
                 logger.info(f"[{self.address_to_log}] Sending tx")
 
-                prepared_tx = interacted_contract.functions[function_name].prepare(**kwargs)
-                fee = await self.estimate_fee(prepared_tx)
-                tx = await prepared_tx.invoke(max_fee=int(fee * (1 + randint(15, 25) / 100)))
+                cairo_version = await self.get_cairo_version_for_txn_execution(self.account)
+                print(self.address_to_log, cairo_version)
 
-                for _ in range(100):
-                    try:
-                        receipt = await self.account.client.get_transaction_receipt(tx.hash)
-                        block = receipt.block_number
-                        if block:
-                            return True
-                    except:
-                        pass
-                    finally:
-                        await asyncio.sleep(3)
+                # prepared_tx = interacted_contract.functions[function_name].prepare(**kwargs)
+                # fee = await self.estimate_fee(prepared_tx)
+                #
+                # tx = await prepared_tx.invoke(max_fee=int(fee * (1 + randint(15, 25) / 100)))
+                signed_invoke_transaction = await self.sign_invoke_transaction(
+                    account=self.account,
+                    calls=calls,
+                    cairo_version=cairo_version,
+                    auto_estimate=False
+                )
+                if signed_invoke_transaction is None:
+                    err_msg = "Error while signing transaction. Aborting transaction."
+                    logger.error(err_msg)
+
+
+                # for _ in range(100):
+                #     try:
+                #         receipt = await self.account.client.get_transaction_receipt(tx.hash)
+                #         block = receipt.block_number
+                #         if block:
+                #             return True
+                #     except:
+                #         pass
+                #     finally:
+                #         await asyncio.sleep(3)
 
             except Exception as err:
                 if "nonce" in str(err):
@@ -223,3 +259,53 @@ class Client:
             gas_price = response.gas_price / 10 ** 9
 
         return overall_fee
+
+    @staticmethod
+    def decode_wallet_version(version: int) -> str:
+        version_bytes = version.to_bytes(31, byteorder="big")
+
+        char_list = [chr(i) for i in version_bytes]
+
+        version_string = "".join(char_list)
+
+        final_version = version_string.lstrip("\x00")
+
+        return final_version
+
+    async def get_account_contract(self, account: Account):
+        try:
+            acc_abi = ContractInfo.ACCOUNT.get('abi')
+            if acc_abi is None:
+                return None
+
+            return Contract(
+                address=account.address,
+                abi=acc_abi,
+                provider=account
+            )
+
+        except ClientError:
+            return None
+
+    async def get_cairo_version_for_txn_execution(self, account: Account):
+        try:
+            account_contract = await self.get_account_contract(account=account)
+            version = await account_contract.functions['getVersion'].call()
+
+            version_decoded = Client.decode_wallet_version(version=version.version)
+
+            major, minor, patch = version_decoded.split('.')
+
+            if int(major) > 0 or int(minor) >= 3:
+                return 1
+
+            return 0
+
+        except ClientError:
+            return None
+
+    async def account_deployed(self, account: Account):
+        version = await self.get_cairo_version_for_txn_execution(account=account)
+        if version is None:
+            return False
+        return True
