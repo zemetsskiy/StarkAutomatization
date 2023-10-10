@@ -166,8 +166,8 @@ class Client:
             return None
 
 
-    #async def send_transaction(self, interacted_contract, function_name=None, **kwargs):
-    async def send_transaction(self, interacted_contract, calls, function_name=None):
+    async def send_transaction(self, interacted_contract, function_name=None, **kwargs):
+    #async def send_transaction(self, interacted_contract, calls, function_name=None):
 
         MAX_RETRIES = 4
         retries = 0
@@ -179,31 +179,31 @@ class Client:
                 cairo_version = await self.get_cairo_version_for_txn_execution(self.account)
                 print(self.address_to_log, cairo_version)
 
-                # prepared_tx = interacted_contract.functions[function_name].prepare(**kwargs)
-                # fee = await self.estimate_fee(prepared_tx)
-                #
-                # tx = await prepared_tx.invoke(max_fee=int(fee * (1 + randint(15, 25) / 100)))
-                signed_invoke_transaction = await self.sign_invoke_transaction(
-                    account=self.account,
-                    calls=calls,
-                    cairo_version=cairo_version,
-                    auto_estimate=False
-                )
-                if signed_invoke_transaction is None:
-                    err_msg = "Error while signing transaction. Aborting transaction."
-                    logger.error(err_msg)
+                prepared_tx = interacted_contract.functions[function_name].prepare(**kwargs)
+                fee = await self.estimate_fee(prepared_tx)
+
+                tx = await prepared_tx.invoke(max_fee=int(fee * (1 + randint(15, 25) / 100)), cairo_version=cairo_version)
+                # signed_invoke_transaction = await self.sign_invoke_transaction(
+                #     account=self.account,
+                #     calls=calls,
+                #     cairo_version=cairo_version,
+                #     auto_estimate=False
+                # )
+                # if signed_invoke_transaction is None:
+                #     err_msg = "Error while signing transaction. Aborting transaction."
+                #     logger.error(err_msg)
 
 
-                # for _ in range(100):
-                #     try:
-                #         receipt = await self.account.client.get_transaction_receipt(tx.hash)
-                #         block = receipt.block_number
-                #         if block:
-                #             return True
-                #     except:
-                #         pass
-                #     finally:
-                #         await asyncio.sleep(3)
+                for _ in range(100):
+                    try:
+                        receipt = await self.account.client.get_transaction_receipt(tx.hash)
+                        block = receipt.block_number
+                        if block:
+                            return True
+                    except:
+                        pass
+                    finally:
+                        await asyncio.sleep(3)
 
             except Exception as err:
                 if "nonce" in str(err):
