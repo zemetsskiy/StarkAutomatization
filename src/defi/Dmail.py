@@ -41,12 +41,16 @@ class Dmail:
             logger.info(f"[{self.client.address_to_log}] Sending message [Dmail]")
             email = self.get_random_email()
             text = self.construct_random_sentence()
-            tx_hash = await self.client.send_transaction(interacted_contract=self.contract,
-                                                         function_name='transaction',
-                                                         calls=[email, text]
-                                                         #to=email,
-                                                         #theme=text
-                                                            )
+            # tx_hash = await self.client.send_transaction(interacted_contract=self.contract,
+            #                                              function_name='transaction',
+            #                                              #calls=[email, text]
+            #                                              to=email,
+            #                                              theme=text)
+
+            tx_hash = await self.client.call(interacted_contract_address=self.contract,
+                                             calldata=[email, text],
+                                             selector_name='transaction')
+
             if tx_hash:
                 logger.info(f"[{self.client.address_to_log}] Message '{text}' was successfully sent to {email} [Dmail]")
                 return True

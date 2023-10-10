@@ -78,11 +78,14 @@ class Client:
             try:
                 logger.info(f"[{self.address_to_log}] Sending tx")
 
+                cairo_version = await self.get_cairo_version_for_txn_execution(self.account)
+                print(self.address_to_log, cairo_version)
+
                 call = Call(to_addr=interacted_contract_address, selector=get_selector_from_name(selector_name),
                             calldata=calldata)
                 max_fee = TokenAmount(amount=float(uniform(0.0007534534534, 0.001)))
                 response = await self.account.execute(calls=[call],
-                                                      max_fee=int(max_fee.Wei * (1 + randint(15, 25) / 100)))
+                                                      max_fee=int(max_fee.Wei * (1 + randint(15, 25) / 100)), cairo_version=cairo_version)
 
                 for _ in range(100):
                     try:
@@ -166,8 +169,8 @@ class Client:
             return None
 
 
-    #async def send_transaction(self, interacted_contract, function_name=None, **kwargs):
-    async def send_transaction(self, interacted_contract, calls, function_name=None):
+    async def send_transaction(self, interacted_contract, function_name=None, **kwargs):
+    #async def send_transaction(self, interacted_contract, calls, function_name=None):
 
         MAX_RETRIES = 4
         retries = 0
@@ -179,20 +182,20 @@ class Client:
                 cairo_version = await self.get_cairo_version_for_txn_execution(self.account)
                 print(self.address_to_log, cairo_version)
 
-                #prepared_tx = interacted_contract.functions[function_name].prepare(**kwargs)
-                #fee = await self.estimate_fee(prepared_tx)
+                prepared_tx = interacted_contract.functions[function_name].prepare(**kwargs)
+                fee = await self.estimate_fee(prepared_tx)
 
-                #tx = await prepared_tx.invoke(max_fee=int(fee * (1 + randint(15, 25) / 100)))
+                tx = await prepared_tx.invoke(max_fee=int(fee * (1 + randint(15, 25) / 100)))
 
-                signed_invoke_transaction = await self.sign_invoke_transaction(
-                    account=self.account,
-                    calls=calls,
-                    cairo_version=cairo_version,
-                    auto_estimate=False
-                )
-                if signed_invoke_transaction is None:
-                    err_msg = "Error while signing transaction. Aborting transaction."
-                    logger.error(err_msg)
+                # signed_invoke_transaction = await self.sign_invoke_transaction(
+                #     account=self.account,
+                #     calls=calls,
+                #     cairo_version=cairo_version,
+                #     auto_estimate=False
+                # )
+                # if signed_invoke_transaction is None:
+                #     err_msg = "Error while signing transaction. Aborting transaction."
+                #     logger.error(err_msg)
 
 
                 for _ in range(100):
