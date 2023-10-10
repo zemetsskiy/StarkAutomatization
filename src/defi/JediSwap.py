@@ -118,7 +118,8 @@ class JediSwap:
                                                      int(amount.Wei * 0.99),
                                                      min_to_amount.Wei,
                                                      2,
-                                                     [from_token_address, to_token_address],
+                                                     from_token_address,
+                                                     to_token_address,
                                                      self.client.address,
                                                      int(time() + 3600)
                                                     ],
