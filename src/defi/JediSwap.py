@@ -105,13 +105,25 @@ class JediSwap:
             #             min_amount = min_to_amount
             if is_approved:
 
-                tx_hash = await self.client.send_transaction(interacted_contract=self.contract,
-                                                             function_name='swap_exact_tokens_for_tokens',
-                                                             amountIn=int(amount.Wei * 0.99),
-                                                             amountOutMin=min_to_amount.Wei,
-                                                             path=[from_token_address, to_token_address],
-                                                             to=self.client.address,
-                                                             deadline=int(time() + 3600))
+                # tx_hash = await self.client.send_transaction(interacted_contract=self.contract,
+                #                                              function_name='swap_exact_tokens_for_tokens',
+                #                                              amountIn=int(amount.Wei * 0.99),
+                #                                              amountOutMin=min_to_amount.Wei,
+                #                                              path=[from_token_address, to_token_address],
+                #                                              to=self.client.address,
+                #                                              deadline=int(time() + 3600))
+
+                tx_hash = await self.client.call(interacted_contract_address=JediSwap.JEDISWAP_CONTRACT,
+                                                 calldata=[
+                                                     int(amount.Wei * 0.99),
+                                                     min_to_amount.Wei,
+                                                     [from_token_address, to_token_address],
+                                                     self.client.address,
+                                                     int(time() + 3600)
+                                                    ],
+                                                 selector_name='swap_exact_tokens_for_tokens')
+
+
                 if tx_hash:
                     logger.info(f"[{self.client.address_to_log}] Successfully swapped {amount.Ether} {from_token_name} to {min_to_amount.Ether} {to_token_name} [JediSwap]")
                     return True
