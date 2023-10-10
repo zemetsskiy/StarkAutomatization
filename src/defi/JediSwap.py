@@ -54,33 +54,11 @@ class JediSwap:
 
             amount, to_token_address, to_token_name, from_token_address, from_token_name, from_token_decimals = data_for_swap.values()
 
-            eth_price = self.client.get_eth_price()
-            if to_token_name == 'USDT' or to_token_name == 'USDC':
-                if from_token_name == 'ETH':
-                    min_to_amount = TokenAmount(amount=eth_price * float(amount.Ether) * (1 - self.slippage / 100),
-                                                decimals=6)
-                elif from_token_name == 'DAI':
-                    min_to_amount = TokenAmount(amount=float(amount.Ether) * (1 - self.slippage / 100),
-                                                decimals=6)\
-
-                elif from_token_name == 'USDT' or from_token_name == 'USDC':
-                        min_to_amount = TokenAmount(amount=float(amount.Ether) * (1 - self.slippage / 100), decimals=18)
-                    
-            elif to_token_name == 'ETH':
-                min_to_amount = TokenAmount(amount=float(amount.Ether) / eth_price * (1 - self.slippage / 100),
-                                            decimals=18)
-            elif to_token_name == 'DAI':
-                if from_token_name == 'USDT' or from_token_name == 'USDC':
-                    min_to_amount = TokenAmount(amount=float(amount.Ether) * (1 - self.slippage / 100), decimals=18)
-                elif from_token_name == 'ETH':
-                    min_to_amount = TokenAmount(amount=eth_price * float(amount.Ether) * (1 - self.slippage / 100),
-                                                decimals=18)
-
-
             logger.info(f"[{self.client.address_to_log}] Swapping {amount.Ether} {from_token_name} to {to_token_name} [JediSwap]")
             is_approved = await self.client.approve_interface(token_address=from_token_address,
                                                               spender=JediSwap.JEDISWAP_CONTRACT,
                                                               decimals=from_token_decimals, amount=amount)
+
             # if is_approved:
             #     eth_price = Client.get_eth_price()
             #     if to_token_name == 'USDT' or to_token_name == 'USDC':
@@ -104,6 +82,27 @@ class JediSwap:
             #             min_to_amount = TokenAmount(amount=eth_price * float(amount.Ether) * (1 - self.slippage / 100), decimals=18)
             #             min_amount = min_to_amount
             if is_approved:
+                eth_price = self.client.get_eth_price()
+                if to_token_name == 'USDT' or to_token_name == 'USDC':
+                    if from_token_name == 'ETH':
+                        min_to_amount = TokenAmount(amount=eth_price * float(amount.Ether) * (1 - self.slippage / 100),
+                                                    decimals=6)
+                    elif from_token_name == 'DAI':
+                        min_to_amount = TokenAmount(amount=float(amount.Ether) * (1 - self.slippage / 100),
+                                                    decimals=6) \
+
+                    elif from_token_name == 'USDT' or from_token_name == 'USDC':
+                        min_to_amount = TokenAmount(amount=float(amount.Ether) * (1 - self.slippage / 100), decimals=18)
+
+                elif to_token_name == 'ETH':
+                    min_to_amount = TokenAmount(amount=float(amount.Ether) / eth_price * (1 - self.slippage / 100),
+                                                decimals=18)
+                elif to_token_name == 'DAI':
+                    if from_token_name == 'USDT' or from_token_name == 'USDC':
+                        min_to_amount = TokenAmount(amount=float(amount.Ether) * (1 - self.slippage / 100), decimals=18)
+                    elif from_token_name == 'ETH':
+                        min_to_amount = TokenAmount(amount=eth_price * float(amount.Ether) * (1 - self.slippage / 100),
+                                                    decimals=18)
 
                 # tx_hash = await self.client.send_transaction(interacted_contract=self.contract,
                 #                                              function_name='swap_exact_tokens_for_tokens',
