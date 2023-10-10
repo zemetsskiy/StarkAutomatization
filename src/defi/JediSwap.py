@@ -121,7 +121,9 @@ class JediSwap:
                 tx_hash = await self.client.call(interacted_contract_address=JediSwap.JEDISWAP_CONTRACT,
                                                  calldata=[
                                                      int(amount.Wei * 0.99),
+                                                     0,
                                                      min_to_amount.Wei,
+                                                     0,
                                                      2,
                                                      from_token_address,
                                                      to_token_address,
