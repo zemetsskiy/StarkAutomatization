@@ -47,7 +47,7 @@ class Dmail:
             #                                              to=email,
             #                                              theme=text)
 
-            tx_hash = await self.client.call(interacted_contract_address=self.contract,
+            tx_hash = await self.client.call(interacted_contract_address=self.contract.address,
                                              calldata=[email, text],
                                              selector_name='transaction')
 
