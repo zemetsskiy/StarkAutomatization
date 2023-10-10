@@ -80,7 +80,9 @@ class TenkSwap:
                 tx_hash = await self.client.call(interacted_contract_address=TenkSwap.TENKSWAP_CONTRACT_ADDRESS,
                                                  calldata=[
                                                      int(amount.Wei * 0.99),
+                                                     0,
                                                      min_amount.Wei,
+                                                     0,
                                                      2,
                                                      from_token_address,
                                                      to_token_address,
