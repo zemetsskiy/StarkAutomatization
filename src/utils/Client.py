@@ -43,30 +43,30 @@ class Client:
             try:
                 contract = Contract(address=token_address, abi=abi, provider=self.account)
 
-                tx = await self.account.client.call(interacted_contract_address=contract.address,
-                                                 calldata=[spender, amount_to_approve],
-                                                 selector_name='approve')
+                # tx = await self.account.client.call(interacted_contract_address=contract.address,
+                #                                  calldata=[spender, amount_to_approve],
+                #                                  selector_name='approve')
 
-                # prepared_tx = contract.functions['approve'].prepare(spender=spender, amount=amount_to_approve)
-                # fee = await self.estimate_fee(prepared_tx)
-                #
-                # tx = await prepared_tx.invoke(max_fee=int(fee * (1 + randint(15, 25) / 100)))
+                prepared_tx = contract.functions['approve'].prepare(spender=spender, amount=amount_to_approve)
+                fee = await self.estimate_fee(prepared_tx)
 
-                # for _ in range(100):
-                #     try:
-                #         receipt = await self.account.client.get_transaction_receipt(tx.hash)
-                #         block = receipt.block_number
-                #         if block:
-                #             return True
-                #     except:
-                #         pass
-                #     finally:
-                #         await asyncio.sleep(3)
+                tx = await prepared_tx.invoke(max_fee=int(fee * (1 + randint(15, 25) / 100)))
 
-                if tx:
-                    logger.info(
-                        f"[{self.account.client.address_to_log}] Successfully approved {amount_to_approve} {token_name}")
-                    return True
+                for _ in range(100):
+                    try:
+                        receipt = await self.account.client.get_transaction_receipt(tx.hash)
+                        block = receipt.block_number
+                        if block:
+                            return True
+                    except:
+                        pass
+                    finally:
+                        await asyncio.sleep(3)
+
+                # if tx:
+                #     logger.info(
+                #         f"[{self.account.client.address_to_log}] Successfully approved {amount_to_approve} {token_name}")
+                #     return True
             except Exception as err:
                 if "nonce" in str(err):
                     retries += 1

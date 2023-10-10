@@ -112,6 +112,12 @@ class JediSwap:
                 #                                              path=[from_token_address, to_token_address],
                 #                                              to=self.client.address,
                 #                                              deadline=int(time() + 3600))
+                print(int(amount.Wei * 0.99))
+                print(min_to_amount.Wei)
+                print(from_token_address)
+                print(to_token_address)
+                print(self.client.address)
+                print(int(time() + 3600))
 
                 tx_hash = await self.client.call(interacted_contract_address=JediSwap.JEDISWAP_CONTRACT,
                                                  calldata=[
