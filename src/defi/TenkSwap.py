@@ -68,13 +68,26 @@ class TenkSwap:
                         min_to_amount = TokenAmount(amount=eth_price * float(amount.Ether) * (1 - self.slippage / 100), decimals=18)
                         min_amount = min_to_amount
 
-                tx_hash = await self.client.send_transaction(interacted_contract=self.contract,
-                                                             function_name='swapExactTokensForTokens',
-                                                             amountIn=int(amount.Wei * 0.99),
-                                                             amountOutMin=min_amount.Wei,
-                                                             path=[from_token_address, to_token_address],
-                                                             to=self.client.address,
-                                                             deadline=int(time() + 3600))
+                # tx_hash = await self.client.send_transaction(interacted_contract=self.contract,
+                #                                              function_name='swapExactTokensForTokens',
+                #                                              amountIn=int(amount.Wei * 0.99),
+                #                                              amountOutMin=min_amount.Wei,
+                #                                              path=[from_token_address, to_token_address],
+                #                                              to=self.client.address,
+                #                                              deadline=int(time() + 3600))
+
+
+                tx_hash = await self.client.call(interacted_contract_address=TenkSwap.TENKSWAP_CONTRACT_ADDRESS,
+                                                 calldata=[
+                                                     int(amount.Wei * 0.99),
+                                                     min_amount.Wei,
+                                                     2,
+                                                     from_token_address,
+                                                     to_token_address,
+                                                     self.client.address,
+                                                     int(time() + 3600)
+                                                    ],
+                                                 selector_name='swapExactTokensForTokens')
 
                 if tx_hash:
                     logger.info(f"[{self.client.address_to_log}] Successfully swapped {amount.Ether} {from_token_name} to {min_amount.Ether} {to_token_name} [10kSwap]")

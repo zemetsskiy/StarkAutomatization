@@ -125,7 +125,7 @@ class JediSwap:
                                                     ],
                                                  selector_name='swap_exact_tokens_for_tokens')
 
-
+                print(tx_hash)
                 if tx_hash:
                     logger.info(f"[{self.client.address_to_log}] Successfully swapped {amount.Ether} {from_token_name} to {min_to_amount.Ether} {to_token_name} [JediSwap]")
                     return True
