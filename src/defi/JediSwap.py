@@ -163,16 +163,35 @@ class JediSwap:
                                                               spender=JediSwap.JEDISWAP_CONTRACT,
                                                               decimals=token_two_decimals, amount=amount_two)
             if is_approved_one and is_approved_two:
-                tx_hash = await self.client.send_transaction(interacted_contract=self.contract,
-                                                             function_name='add_liquidity',
-                                                             tokenA=token_one_address,
-                                                             tokenB=token_two_address,
-                                                             amountADesired=amount_one.Wei,
-                                                             amountBDesired=amount_two.Wei,
-                                                             amountAMin=int(amount_one.Wei * (1 - self.slippage / 100)),
-                                                             amountBMin=int(amount_two.Wei * (1 - self.slippage / 100)),
-                                                             to=self.client.address,
-                                                             deadline=int(time() + 3600))
+                # tx_hash = await self.client.send_transaction(interacted_contract=self.contract,
+                #                                              function_name='add_liquidity',
+                #                                              tokenA=token_one_address,
+                #                                              tokenB=token_two_address,
+                #                                              amountADesired=amount_one.Wei,
+                #                                              amountBDesired=amount_two.Wei,
+                #                                              amountAMin=int(amount_one.Wei * (1 - self.slippage / 100)),
+                #                                              amountBMin=int(amount_two.Wei * (1 - self.slippage / 100)),
+                #                                              to=self.client.address,
+                #                                              deadline=int(time() + 3600))
+                #
+
+                tx_hash = await self.client.call(interacted_contract_address=JediSwap.JEDISWAP_CONTRACT,
+                                                 calldata=[
+                                                     token_one_address,
+                                                     token_two_address,
+                                                     amount_one.Wei,
+                                                     0,
+                                                     amount_two.Wei,
+                                                     0,
+                                                     int(amount_one.Wei * (1 - self.slippage / 100)),
+                                                     0,
+                                                     int(amount_two.Wei * (1 - self.slippage / 100)),
+                                                     0,
+                                                     self.client.address,
+                                                     int(time() + 3600)
+                                                    ],
+                                                 selector_name='add_liquidity')
+
                 if tx_hash:
                     logger.info(f"[{self.client.address_to_log}] Successfully added ${amount_in_usdt} to {lp_name} LP [JediSwap]")
                     random_sleep = random.randint(30, 90)
@@ -208,15 +227,31 @@ class JediSwap:
                                                               spender=JediSwap.JEDISWAP_CONTRACT,
                                                               decimals=18, amount=amount)
             if is_approved:
-                tx_hash = await self.client.send_transaction(interacted_contract=self.contract,
-                                                             function_name='remove_liquidity',
-                                                             tokenA=tokenA,
-                                                             tokenB=tokenB,
-                                                             liquidity=amount.Wei,
-                                                             amountAMin=amountA,
-                                                             amountBMin=amountB,
-                                                             to=self.client.address,
-                                                             deadline=int(time() + 3600))
+                # tx_hash = await self.client.send_transaction(interacted_contract=self.contract,
+                #                                              function_name='remove_liquidity',
+                #                                              tokenA=tokenA,
+                #                                              tokenB=tokenB,
+                #                                              liquidity=amount.Wei,
+                #                                              amountAMin=amountA,
+                #                                              amountBMin=amountB,
+                #                                              to=self.client.address,
+                #                                              deadline=int(time() + 3600))
+
+                tx_hash = await self.client.call(interacted_contract_address=JediSwap.JEDISWAP_CONTRACT,
+                                                 calldata=[
+                                                     tokenA,
+                                                     tokenB,
+                                                     amount.Wei,
+                                                     0,
+                                                     amountA,
+                                                     0,
+                                                     amountB,
+                                                     0,
+                                                     self.client.address,
+                                                     int(time() + 3600)
+                                                 ],
+                                                 selector_name='remove_liquidity')
+
                 if tx_hash:
                     logger.info(f"[{self.client.address_to_log}] Successfully removed liquidity [JediSwap]")
                     return True
