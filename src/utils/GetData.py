@@ -80,7 +80,7 @@ async def GetDataForLP(client: Client, dex, JEDISWAP_LIQ_PERCENTAGE):
         tokens_list.remove(from_token)
         to_token = choice(tokens_list)
         tokens_list.remove(to_token)
-        #to_token = USDC_ADDRESS
+        to_token = USDT_ADDRESS
 
         token_one_data = ContractInfo.GetData(from_token)
         token_two_data = ContractInfo.GetData(to_token)
