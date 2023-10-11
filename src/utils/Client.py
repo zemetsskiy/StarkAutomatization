@@ -386,12 +386,12 @@ class Client:
     async def build_deploy_txn(self):
 
         nonce = await self.account.get_nonce()
-
+        print(nonce)
         max_fee = None
         estimated_fee = True
 
         key_pair = KeyPair.from_private_key(self.private_key)
-        key_data = self.get_key_data(key_pair=self.key_pair, key_type="argent")
+        key_data = self.get_key_data(key_pair=key_pair, key_type="argent")
 
         try:
             deploy_account_tx = await self.account.sign_deploy_account_transaction(
@@ -442,7 +442,6 @@ class Client:
 
             try:
                 signed_deploy_txn = await self.build_deploy_txn()
-                print("signed_deploy_txn")
                 deploy_result = await self.account.client.deploy_account(signed_deploy_txn)
                 tx_hash = deploy_result.transaction_hash
 
