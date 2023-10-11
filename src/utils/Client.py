@@ -36,10 +36,12 @@ class Client:
 
         logger.info(f"[{self.address_to_log}] Approving {token_name}")
 
-        MAX_RETRIES = 4
+        MAX_RETRIES = 7
         retries = 0
 
         while retries < MAX_RETRIES:
+            if retries != 0:
+                    await asyncio.sleep(4)
             try:
                 contract = Contract(address=token_address, abi=abi, provider=self.account)
 
@@ -86,7 +88,7 @@ class Client:
 
         while retries < MAX_RETRIES:
             if retries != 0:
-                    await asyncio.sleep(5)
+                    await asyncio.sleep(6)
             try:
                 logger.info(f"[{self.address_to_log}] Sending tx")
 
