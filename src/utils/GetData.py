@@ -80,7 +80,7 @@ async def GetDataForLP(client: Client, dex, JEDISWAP_LIQ_PERCENTAGE):
         tokens_list.remove(from_token)
         to_token = choice(tokens_list)
         tokens_list.remove(to_token)
-        to_token = USDT_ADDRESS
+        #to_token = USDT_ADDRESS
 
         token_one_data = ContractInfo.GetData(from_token)
         token_two_data = ContractInfo.GetData(to_token)
@@ -132,9 +132,29 @@ async def GetDataForLP(client: Client, dex, JEDISWAP_LIQ_PERCENTAGE):
         balanceOf_first = await client.get_balance(token_address=token_one_address, decimals=token_one_decimals)
         balanceOf_second = await client.get_balance(token_address=token_two_address, decimals=token_two_decimals)
 
-        if balanceOf_second.Wei <= 0 or balanceOf_first.Wei <= 0:
+        if balanceOf_second.Wei <= 0:
             logger.error(f"balanceOf_second {token_two_name} {balanceOf_second.Wei}. balanceOf_first {token_one_name} {balanceOf_first.Wei}")
-            raise ValueError("Insufficient tokens on balance to add a liquidity pair. Only ETH is available")
+            logger.error(f"Choosing another token")
+
+            ##################### Getting data about another token #####################################
+            if token_two_name == "USDT":
+                token_two_name = 'USDC'
+                token_two_address = USDC_ADDRESS
+                token_two_decimals = 6
+            else:
+                token_two_name = 'USDT'
+                token_two_address = USDT_ADDRESS
+                token_two_decimals = 6
+
+            balanceOf_second = await client.get_balance(token_address=token_two_address, decimals=token_two_decimals)
+
+            ##### check another token balance #####
+            if balanceOf_second.Wei <= 0:
+                raise ValueError(f"Insufficient tokens on balance to add a liquidity pair.")
+
+        elif balanceOf_first.Wei <= 0:
+            logger.error(f"balanceOf_second {token_two_name} {balanceOf_second.Wei}. balanceOf_first {token_one_name} {balanceOf_first.Wei}")
+            raise ValueError("Insufficient ETH on balance to add a liquidity pair.")
 
         if token_one_name == 'ETH':
             eth_price = client.get_eth_price()
