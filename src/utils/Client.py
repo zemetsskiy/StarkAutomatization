@@ -397,11 +397,15 @@ class Client:
 
     async def deploy(self):
         deployed = await self.account_deployed(self.account)
-        bal = await self.account.get_balance()
-        print(bal)
+
         logger.info(f"[{self.address_to_log}] Deployed: {deployed}")
 
         if not deployed:
+            balance = await self.account.get_balance()
+
+            if balance == 0:
+                raise ValueError(f"Deploy: Insufficient funds in StarkNet. Balance: {balance} ETH")
+
             try:
                 signed_deploy_txn = await self.build_deploy_txn()
                 deploy_result = await self.account.client.deploy_account(signed_deploy_txn)

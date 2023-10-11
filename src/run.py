@@ -280,7 +280,10 @@ async def setup_acc(keys):
         #             logger.error(f"[{formatted_key}] Err:  {err}")
         #             continue
     except Exception as err:
-        logger.error(f"Unexpected error: {err}. Stopped working ")
+        if "Deploy" in str(err):
+            logger.error(f"Insufficient funds to deploy account")
+        else:
+            logger.error(f"Unexpected error: {err}. Stopped working ")
 
 
 async def setup_accs():
