@@ -391,6 +391,7 @@ class Client:
         key_data = self.get_key_data(key_pair=key_pair, key_type="argent")
 
         try:
+            print("зашел")
             deploy_account_tx = await self.account.sign_deploy_account_transaction(
                 class_hash=key_data.class_hash,
                 contract_address_salt=key_pair.public_key,
