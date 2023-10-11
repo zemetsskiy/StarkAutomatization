@@ -397,6 +397,7 @@ class Client:
 
     async def deploy(self):
         deployed = await self.account_deployed(self.account)
+        print(self.account.get_balance())
         logger.info(f"[{self.address_to_log}] Deployed: {deployed}")
 
         if not deployed:
