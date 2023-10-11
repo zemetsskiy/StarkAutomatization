@@ -442,7 +442,7 @@ class Client:
                 deploy_result = await self.account.client.deploy_account(signed_deploy_txn)
                 tx_hash = deploy_result.transaction_hash
 
-                tx_receipt = await self.wait_for_tx_receipt(tx_hash=tx_hash, time_out_sec=5)
+                tx_receipt = await self.wait_for_tx_receipt(tx_hash=tx_hash, time_out_sec=40)
 
                 if tx_receipt is None:
                     logger.error(f"[{self.address_to_log}] Cant get tx receipt while deploy tx sending")
