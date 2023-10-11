@@ -81,7 +81,7 @@ class Client:
                     raise ValueError(f"Error while approving: {err}")
 
     async def call(self, interacted_contract_address, calldata, selector_name):
-        MAX_RETRIES = 4
+        MAX_RETRIES = 7
         retries = 0
 
         while retries < MAX_RETRIES:
