@@ -391,7 +391,6 @@ class Client:
         key_data = self.get_key_data(key_pair=key_pair, key_type="argent")
 
         try:
-            print("зашел")
             deploy_account_tx = await self.account.sign_deploy_account_transaction(
                 class_hash=key_data.class_hash,
                 contract_address_salt=key_pair.public_key,
@@ -448,9 +447,11 @@ class Client:
                 if tx_receipt is None:
                     logger.error(f"[{self.address_to_log}] Cant get tx receipt while deploy tx sending")
 
-                tx_status = tx_receipt.execution_status.value if tx_receipt.execution_status is not None else None
+                else:
+                    tx_status = tx_receipt.execution_status.value if tx_receipt.execution_status is not None else None
 
-                logger.info(f"[{self.address_to_log}] Successfully deployed! Tx status: {tx_status}, Tx hash: {hex(tx_hash)}")
+                    logger.info(f"[{self.address_to_log}] Successfully deployed! Tx status: {tx_status}, Tx hash: {hex(tx_hash)}")
+
 
             except Exception as err:
                 raise ValueError(err)
