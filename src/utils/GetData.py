@@ -75,10 +75,11 @@ async def GetDataForLP(client: Client, dex, JEDISWAP_LIQ_PERCENTAGE):
         USDC_ADDRESS = ContractInfo.USDC.get('address')
         tokens_list = [ETH_ADDRESS, USDC_ADDRESS, USDT_ADDRESS]
 
-        from_token = choice(tokens_list)
+        #from_token = choice(tokens_list)
         from_token = ETH_ADDRESS
         tokens_list.remove(from_token)
         to_token = choice(tokens_list)
+        tokens_list.remove(to_token)
         #to_token = USDC_ADDRESS
 
         token_one_data = ContractInfo.GetData(from_token)
@@ -132,6 +133,7 @@ async def GetDataForLP(client: Client, dex, JEDISWAP_LIQ_PERCENTAGE):
         balanceOf_second = await client.get_balance(token_address=token_two_address, decimals=token_two_decimals)
 
         if balanceOf_second.Wei <= 0 or balanceOf_first.Wei <= 0:
+            logger.error(f"balanceOf_second {token_two_name} {balanceOf_second.Wei}. balanceOf_first {token_one_name} {balanceOf_first.Wei}")
             raise ValueError("Insufficient tokens on balance to add a liquidity pair. Only ETH is available")
 
         if token_one_name == 'ETH':

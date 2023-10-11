@@ -85,6 +85,12 @@ class Client:
                         f"Client failed with code 63. Attempt {retries} of {MAX_RETRIES}. Trying to call again.")
                     if retries == MAX_RETRIES:
                         raise ValueError("Client failed with code 63.")
+                elif "host starknet-mainnet.infura.io" in str(err):
+                    logger.info("Trying to reconnect tohost starknet-mainnet.infura.io. Sleep for 15s")
+                    await asyncio.sleep(15)
+                    retries += 1
+                    if retries == MAX_RETRIES:
+                        raise ValueError("Cant connect to starknet-mainnet.infura.io")
                 else:
                     raise ValueError(f"Error while approving: {err}")
 
@@ -130,10 +136,15 @@ class Client:
                     raise ValueError("Account balance is smaller than the transaction's max_fee.")
                 elif "63" in str(err):
                     retries += 1
-                    logger.error(
-                        f"Client failed with code 63. Attempt {retries} of {MAX_RETRIES}. Trying to call again.")
+                    logger.error(f"Client failed with code 63. Attempt {retries} of {MAX_RETRIES}. Trying to call again.")
                     if retries == MAX_RETRIES:
                         raise ValueError("Client failed with code 63.")
+                elif "host starknet-mainnet.infura.io" in str(err):
+                    logger.info("Trying to reconnect tohost starknet-mainnet.infura.io. Sleep for 15s")
+                    await asyncio.sleep(15)
+                    retries += 1
+                    if retries == MAX_RETRIES:
+                        raise ValueError("Cant connect to starknet-mainnet.infura.io")
                 else:
                     raise ValueError(f"Error while sending tx: {err}")
 
