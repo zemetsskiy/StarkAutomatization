@@ -36,12 +36,12 @@ class Client:
 
         logger.info(f"[{self.address_to_log}] Approving {token_name}")
 
-        MAX_RETRIES = 7
+        MAX_RETRIES = 10
         retries = 0
 
         while retries < MAX_RETRIES:
             if retries != 0:
-                    await asyncio.sleep(4)
+                    await asyncio.sleep(5)
             try:
                 contract = Contract(address=token_address, abi=abi, provider=self.account)
 
@@ -79,6 +79,12 @@ class Client:
                     raise ValueError("Transaction reverted: Error in the called contract.")
                 elif "balance is smaller than the transaction's max_fee" in str(err):
                     raise ValueError("Account balance is smaller than the transaction's max_fee.")
+                elif "63" in str(err):
+                    retries += 1
+                    logger.error(
+                        f"Client failed with code 63. Attempt {retries} of {MAX_RETRIES}. Trying to call again.")
+                    if retries == MAX_RETRIES:
+                        raise ValueError("Client failed with code 63.")
                 else:
                     raise ValueError(f"Error while approving: {err}")
 
