@@ -68,15 +68,6 @@ class TenkSwap:
                         min_to_amount = TokenAmount(amount=eth_price * float(amount.Ether) * (1 - self.slippage / 100), decimals=18)
                         min_amount = min_to_amount
 
-                # tx_hash = await self.client.send_transaction(interacted_contract=self.contract,
-                #                                              function_name='swapExactTokensForTokens',
-                #                                              amountIn=int(amount.Wei * 0.99),
-                #                                              amountOutMin=min_amount.Wei,
-                #                                              path=[from_token_address, to_token_address],
-                #                                              to=self.client.address,
-                #                                              deadline=int(time() + 3600))
-
-
                 tx_hash = await self.client.call(interacted_contract_address=TenkSwap.TENKSWAP_CONTRACT_ADDRESS,
                                                  calldata=[
                                                      int(amount.Wei * 0.99),

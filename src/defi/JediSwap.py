@@ -59,28 +59,6 @@ class JediSwap:
                                                               spender=JediSwap.JEDISWAP_CONTRACT,
                                                               decimals=from_token_decimals, amount=amount)
 
-            # if is_approved:
-            #     eth_price = Client.get_eth_price()
-            #     if to_token_name == 'USDT' or to_token_name == 'USDC':
-            #         if from_token_name == 'ETH':
-            #             min_to_amount = TokenAmount(amount=eth_price * float(amount.Ether) * (1 - self.slippage / 100), decimals=6)
-            #             min_amount = min_to_amount
-            #         elif from_token_name == 'DAI':
-            #             min_to_amount = TokenAmount(amount=float(amount.Ether) * (1 - self.slippage / 100), decimals=6)
-            #             min_amount = min_to_amount
-            #
-            #     elif to_token_name == 'ETH':
-            #         min_to_amount = TokenAmount(amount=float(amount.Ether) / eth_price * (1 - self.slippage / 100), decimals=18)
-            #         min_amount = min_to_amount
-            #
-            #     elif to_token_name == 'DAI':
-            #         if from_token_name == 'USDT' or from_token_name == 'USDC':
-            #             min_to_amount = TokenAmount(amount=float(amount.Ether) * (1 - self.slippage / 100), decimals=18)
-            #             min_amount = min_to_amount
-            #
-            #         elif from_token_name == 'ETH':
-            #             min_to_amount = TokenAmount(amount=eth_price * float(amount.Ether) * (1 - self.slippage / 100), decimals=18)
-            #             min_amount = min_to_amount
             if is_approved:
                 eth_price = self.client.get_eth_price()
                 if to_token_name == 'USDT' or to_token_name == 'USDC':
@@ -103,20 +81,6 @@ class JediSwap:
                     elif from_token_name == 'ETH':
                         min_to_amount = TokenAmount(amount=eth_price * float(amount.Ether) * (1 - self.slippage / 100),
                                                     decimals=18)
-
-                # tx_hash = await self.client.send_transaction(interacted_contract=self.contract,
-                #                                              function_name='swap_exact_tokens_for_tokens',
-                #                                              amountIn=int(amount.Wei * 0.99),
-                #                                              amountOutMin=min_to_amount.Wei,
-                #                                              path=[from_token_address, to_token_address],
-                #                                              to=self.client.address,
-                #                                              deadline=int(time() + 3600))
-                print(int(amount.Wei * 0.99))
-                print(min_to_amount.Wei)
-                print(from_token_address)
-                print(to_token_address)
-                print(self.client.address)
-                print(int(time() + 3600))
 
                 tx_hash = await self.client.call(interacted_contract_address=JediSwap.JEDISWAP_CONTRACT,
                                                  calldata=[
@@ -163,18 +127,6 @@ class JediSwap:
                                                               spender=JediSwap.JEDISWAP_CONTRACT,
                                                               decimals=token_two_decimals, amount=amount_two)
             if is_approved_one and is_approved_two:
-                # tx_hash = await self.client.send_transaction(interacted_contract=self.contract,
-                #                                              function_name='add_liquidity',
-                #                                              tokenA=token_one_address,
-                #                                              tokenB=token_two_address,
-                #                                              amountADesired=amount_one.Wei,
-                #                                              amountBDesired=amount_two.Wei,
-                #                                              amountAMin=int(amount_one.Wei * (1 - self.slippage / 100)),
-                #                                              amountBMin=int(amount_two.Wei * (1 - self.slippage / 100)),
-                #                                              to=self.client.address,
-                #                                              deadline=int(time() + 3600))
-                #
-
                 tx_hash = await self.client.call(interacted_contract_address=JediSwap.JEDISWAP_CONTRACT,
                                                  calldata=[
                                                      token_one_address,

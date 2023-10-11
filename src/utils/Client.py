@@ -1,7 +1,7 @@
 import asyncio
 import requests
 from random import randint, uniform
-from typing import Optional, Union
+from typing import Optional
 from starknet_py.net.client_errors import ClientError
 
 from starknet_py.net.client_models import Call
@@ -51,10 +51,6 @@ class Client:
             try:
                 contract = Contract(address=token_address, abi=abi, provider=self.account)
 
-                # tx = await self.account.client.call(interacted_contract_address=contract.address,
-                #                                  calldata=[spender, amount_to_approve],
-                #                                  selector_name='approve')
-
                 prepared_tx = contract.functions['approve'].prepare(spender=spender, amount=amount_to_approve)
                 fee = await self.estimate_fee(prepared_tx)
 
@@ -71,10 +67,6 @@ class Client:
                     finally:
                         await asyncio.sleep(3)
 
-                # if tx:
-                #     logger.info(
-                #         f"[{self.account.client.address_to_log}] Successfully approved {amount_to_approve} {token_name}")
-                #     return True
             except Exception as err:
                 if "nonce" in str(err):
                     retries += 1
@@ -213,7 +205,6 @@ class Client:
 
 
     async def send_transaction(self, interacted_contract, function_name=None, **kwargs):
-    #async def send_transaction(self, interacted_contract, calls, function_name=None):
 
         MAX_RETRIES = 4
         retries = 0
@@ -229,17 +220,6 @@ class Client:
                 fee = await self.estimate_fee(prepared_tx)
 
                 tx = await prepared_tx.invoke(max_fee=int(fee * (1 + randint(15, 25) / 100)))
-
-                # signed_invoke_transaction = await self.sign_invoke_transaction(
-                #     account=self.account,
-                #     calls=calls,
-                #     cairo_version=cairo_version,
-                #     auto_estimate=False
-                # )
-                # if signed_invoke_transaction is None:
-                #     err_msg = "Error while signing transaction. Aborting transaction."
-                #     logger.error(err_msg)
-
 
                 for _ in range(100):
                     try:
@@ -268,18 +248,6 @@ class Client:
     async def get_balance(self, token_address=ContractInfo.ETH.get('address'), decimals=18):
         balance = await self.account.get_balance(token_address=token_address)
         return TokenAmount(amount=balance, wei=True, decimals=decimals)
-
-    @staticmethod
-    def get_eth_price_old():
-        response = requests.get(f'https://api.binance.com/api/v3/depth?limit=1&symbol=ETHUSDT')
-        if response.status_code != 200:
-            logger.error(f"Response Status Code: {response.status_code} json: {response.json()}")
-            return
-        result = response.json()
-        if 'asks' not in result:
-            logger.error(f"Response Status Code: {response.status_code} json: {response.json()}")
-            return
-        return float(result['asks'][0][0])
 
     @staticmethod
     def get_eth_price():
@@ -358,7 +326,6 @@ class Client:
             return False
         return True
 
-
     def get_key_data(self, key_type, key_pair: KeyPair):
 
         if key_type == "argent":
@@ -423,7 +390,6 @@ class Client:
                 retries=(time_out_sec // 5) + 1
             )
         except Exception as err:
-            logger.error(f"Error while waiting for txn receipt: {err}")
             raise ValueError(err)
 
     async def deploy(self):
@@ -442,7 +408,7 @@ class Client:
                 deploy_result = await self.account.client.deploy_account(signed_deploy_txn)
                 tx_hash = deploy_result.transaction_hash
 
-                tx_receipt = await self.wait_for_tx_receipt(tx_hash=tx_hash, time_out_sec=40)
+                tx_receipt = await self.wait_for_tx_receipt(tx_hash=tx_hash, time_out_sec=120)
 
                 if tx_receipt is None:
                     logger.error(f"[{self.address_to_log}] Cant get tx receipt while deploy tx sending")
