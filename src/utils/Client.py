@@ -16,6 +16,12 @@ from src.config.logger import logger
 from src.utils.Info import ContractInfo, TokenAmount
 
 
+class KeyData:
+    def __init__(self, class_hash: hex, call_data: list):
+        self.class_hash = class_hash
+        self.call_data = call_data
+
+
 class Client:
     def __init__(self, private_key, address, address_to_log, starknet_rpc, MAX_GWEI):
         self.private_key = private_key
@@ -352,6 +358,31 @@ class Client:
             return False
         return True
 
+
+    def get_key_data(self, key_type, key_pair: KeyPair):
+
+        if key_type == "argent":
+            class_hash = 0x01a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003
+            account_initialize_call_data = [key_pair.public_key, 0]
+
+            call_data = account_initialize_call_data
+
+        elif key_type == "braavos":
+            class_hash = 0x03131fa018d520a037686ce3efddeab8f28895662f019ca3ca18a626650f7d1e
+            account_initialize_call_data = [key_pair.public_key]
+
+            call_data = [
+                0x5aa23d5bb71ddaa783da7ea79d405315bafa7cf0387a74f4593578c3e9e6570,
+                0x2dd76e7ad84dbed81c314ffe5e7a7cacfb8f4836f01af4e913f275f89a3de1a,
+                len(account_initialize_call_data),
+                *account_initialize_call_data
+            ]
+
+        else:
+            raise Exception(f"Unknown key type: {key_type}")
+
+        return KeyData(class_hash=class_hash, call_data=call_data)
+
     async def build_deploy_txn(self):
 
         nonce = await self.account.get_nonce()
@@ -359,11 +390,14 @@ class Client:
         max_fee = None
         estimated_fee = True
 
+        key_pair = KeyPair.from_private_key(self.private_key)
+        key_data = self.get_key_data(key_pair=self.key_pair, key_type="argent")
+
         try:
             deploy_account_tx = await self.account.sign_deploy_account_transaction(
-                class_hash=self.account.key_data.class_hash,
-                contract_address_salt=self.account.key_pair.public_key,
-                constructor_calldata=self.account.key_data.call_data,
+                class_hash=key_data.class_hash,
+                contract_address_salt=key_pair.public_key,
+                constructor_calldata=key_data.call_data,
                 nonce=nonce,
                 max_fee=max_fee,
                 auto_estimate=estimated_fee
