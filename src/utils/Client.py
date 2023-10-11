@@ -384,7 +384,7 @@ class Client:
         return KeyData(class_hash=class_hash, call_data=call_data)
 
     async def build_deploy_txn(self):
-
+        print("зашел")
         nonce = await self.account.get_nonce()
         print(nonce)
         max_fee = None
