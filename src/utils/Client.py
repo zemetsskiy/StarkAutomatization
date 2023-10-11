@@ -442,6 +442,7 @@ class Client:
 
             try:
                 signed_deploy_txn = await self.build_deploy_txn()
+                print("signed_deploy_txn")
                 deploy_result = await self.account.client.deploy_account(signed_deploy_txn)
                 tx_hash = deploy_result.transaction_hash
 
