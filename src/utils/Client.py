@@ -323,3 +323,72 @@ class Client:
         if version is None:
             return False
         return True
+
+    async def build_deploy_txn(self):
+
+        nonce = await self.account.get_nonce()
+
+        max_fee = None
+        estimated_fee = True
+
+        try:
+            deploy_account_tx = await self.account.sign_deploy_account_transaction(
+                class_hash=self.account.key_data.class_hash,
+                contract_address_salt=self.account.key_pair.public_key,
+                constructor_calldata=self.account.key_data.call_data,
+                nonce=nonce,
+                max_fee=max_fee,
+                auto_estimate=estimated_fee
+            )
+
+            return deploy_account_tx
+
+        except ClientError as err:
+            if "unavailable for deployment" in str(err):
+                err_msg = f"Account unavailable for deployment or already deployed."
+                logger.error(f"[{self.address_to_log}] {err_msg}")
+                raise ValueError(err)
+            else:
+                logger.error(f"[{self.address_to_log}] {err}")
+                raise ValueError(err)
+
+    async def wait_for_tx_receipt(
+            self,
+            tx_hash: int,
+            time_out_sec: int
+    ):
+        try:
+            return await self.account.client.wait_for_tx(
+                tx_hash=tx_hash,
+                check_interval=5,
+                retries=(time_out_sec // 5) + 1
+            )
+        except Exception as err:
+            logger.error(f"Error while waiting for txn receipt: {err}")
+            raise ValueError(err)
+
+
+    async def deploy(self):
+        deployed = await self.account_deployed(self.account)
+        logger.info(f"[{self.address_to_log}] Deployed: {deployed}")
+
+        if not deployed:
+            try:
+                signed_deploy_txn = await self.build_deploy_txn()
+                deploy_result = await self.account.client.deploy_account(signed_deploy_txn)
+                tx_hash = deploy_result.transaction_hash
+
+                tx_receipt = await self.wait_for_tx_receipt(tx_hash=tx_hash, time_out_sec=5)
+
+                if tx_receipt is None:
+                    logger.error(f"[{self.address_to_log}] Cant get tx receipt while deploy tx sending")
+
+                tx_status = tx_receipt.execution_status.value if tx_receipt.execution_status is not None else None
+
+                logger.info(f"[{self.address_to_log}] Successfully deployed! Tx status: {tx_status}, Tx hash: {hex(tx_hash)}")
+
+            except Exception as err:
+                raise ValueError(err)
+
+        else:
+            pass
