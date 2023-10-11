@@ -396,7 +396,7 @@ class Client:
                 class_hash=key_data.class_hash,
                 contract_address_salt=key_pair.public_key,
                 constructor_calldata=key_data.call_data,
-               # nonce=nonce,
+                nonce=1,
                 max_fee=max_fee,
                 auto_estimate=estimated_fee
             )
