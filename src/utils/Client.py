@@ -418,4 +418,5 @@ class Client:
                 raise ValueError(err)
 
         else:
+            logger.info(f"{self.address_to_log} Passed deploying")
             pass
