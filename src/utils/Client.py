@@ -347,6 +347,7 @@ class Client:
 
     async def account_deployed(self, account: Account):
         version = await self.get_cairo_version_for_txn_execution(account=account)
+        print(version)
         if version is None:
             return False
         return True
@@ -393,7 +394,6 @@ class Client:
         except Exception as err:
             logger.error(f"Error while waiting for txn receipt: {err}")
             raise ValueError(err)
-
 
     async def deploy(self):
         deployed = await self.account_deployed(self.account)
