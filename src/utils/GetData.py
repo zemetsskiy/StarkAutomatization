@@ -133,18 +133,25 @@ async def GetDataForLP(client: Client, dex, JEDISWAP_LIQ_PERCENTAGE):
         balanceOf_second = await client.get_balance(token_address=token_two_address, decimals=token_two_decimals)
 
         if balanceOf_second.Wei <= 0:
-            logger.error(f"balanceOf_second {token_two_name} {balanceOf_second.Wei}. balanceOf_first {token_one_name} {balanceOf_first.Wei}")
-            logger.error(f"Choosing another token")
+            logger.error(f"{token_two_name} {balanceOf_second.Ether} | {token_one_name} {balanceOf_first.Ether}")
 
             ##################### Getting data about another token #####################################
             if token_two_name == "USDT":
+                logger.info(f"Ok. I will chose USDC.")
                 token_two_name = 'USDC'
                 token_two_address = USDC_ADDRESS
                 token_two_decimals = 6
+                pooled_token_data = ContractInfo.GetData(0x04d0390b777b424e43839cd1e744799f3de6c176c7e32c1812a41dbd9c19db6a)
+                pooled_token_address = pooled_token_data.get('address')
+                pooled_token_name = pooled_token_data.get('name')
             else:
+                logger.info(f"Ok. I will chose USDT.")
                 token_two_name = 'USDT'
                 token_two_address = USDT_ADDRESS
                 token_two_decimals = 6
+                pooled_token_data = ContractInfo.GetData(0x045e7131d776dddc137e30bdd490b431c7144677e97bf9369f629ed8d3fb7dd6)
+                pooled_token_address = pooled_token_data.get('address')
+                pooled_token_name = pooled_token_data.get('name')
 
             balanceOf_second = await client.get_balance(token_address=token_two_address, decimals=token_two_decimals)
 
